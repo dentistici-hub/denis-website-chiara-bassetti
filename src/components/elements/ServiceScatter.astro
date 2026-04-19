@@ -150,7 +150,9 @@ import ServicePanel from './ServicePanel.astro';
   :global(.scatter-item__img) {
     border-radius: 3px;
     display: block;
-    object-fit: cover;
+    /* contain, not cover, so wide/tall GIFs (nyan cat, rainbow arrows)
+       show their whole frame instead of getting cropped to the item box. */
+    object-fit: contain;
   }
 
   :global(.scatter-item__spline) {

@@ -216,9 +216,13 @@ import ServiceScatter from '../elements/ServiceScatter.astro';
       <a href="https://instagram.com/chiarabassetti.studio" target="_blank" rel="noopener" class="collage__ig">@chiarabassetti.studio</a>
     </div>
     <div class="collage__cta-gif" data-reveal="fade">
-      <div class="collage__cta-monogram" role="img" aria-label="Chiara Bassetti">
-        <span class="collage__cta-monogram__mark">CB</span>
-      </div>
+      <img
+        src={`${import.meta.env.BASE_URL}images/cta-portrait.avif`}
+        alt="Chiara Bassetti"
+        width="280"
+        height="280"
+        loading="lazy"
+      />
     </div>
   </div>
 

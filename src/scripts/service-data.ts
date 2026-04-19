@@ -47,12 +47,13 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
     desc: 'Scopri i colori che ti appartengono. Un percorso che intreccia estetica, emozione e la tua vera essenza attraverso l\'analisi cromatica personalizzata.',
     credits: 'Consulenza individuale\nDurata ~2 ore',
     object3d: 'prism',
+    image: '/images/services/florals-streep.gif',
     position: { top: '8%', left: '14%', w: 120, h: 120 },
     blocks: [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/identita-cromatica-hero.png',
+        src: '/images/services/identita-cromatica-hero.jpg',
       },
       {
         type: 'text',
@@ -62,7 +63,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: '/images/services/gradient-abstract.png',
+        src: '/images/services/gradient-abstract.jpg',
       },
       {
         type: 'caption',
@@ -81,7 +82,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '21/9',
-        src: '/images/services/palette-personale.png',
+        src: '/images/services/palette-personale.jpg',
       },
       {
         type: 'divider',
@@ -94,7 +95,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/identita-bubbles.png',
+        src: '/images/services/identita-bubbles.jpg',
       },
     ],
   },
@@ -107,13 +108,13 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
     desc: 'Analisi scientifica della tua palette personale. Il test RAH combinato con l\'armocromia classica per una diagnosi cromatica completa.',
     credits: 'Consulenza individuale\nDurata ~1.5 ore',
     object3d: 'fan-deck',
-    spline: 'https://my.spline.design/3dcircularcardscopycopy-p4bTu4URVZkzemQ7J3QGApQx-qQf/',
+    image: '/images/services/lipstick-selena.gif',
     position: { top: '2%', left: '40%', w: 200, h: 200 },
     blocks: [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/rah-test.png',
+        src: '/images/services/rah-test.jpg',
       },
       {
         type: 'text',
@@ -123,7 +124,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: '/images/services/gradient-abstract.png',
+        src: '/images/services/gradient-abstract.jpg',
       },
       {
         type: 'list',
@@ -138,7 +139,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/palette-personale.png',
+        src: '/images/services/palette-personale.jpg',
       },
     ],
   },
@@ -157,7 +158,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/wardrobe-after.png',
+        src: '/images/services/wardrobe-after.jpg',
       },
       {
         type: 'text',
@@ -167,7 +168,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: '/images/services/wardrobe-messy.png',
+        src: '/images/services/wardrobe-messy.jpg',
       },
       {
         type: 'list',
@@ -182,7 +183,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '21/9',
-        src: '/images/services/wardrobe-before.png',
+        src: '/images/services/wardrobe-before.jpg',
       },
     ],
   },
@@ -195,7 +196,9 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
     desc: 'Valorizza i tuoi lineamenti e riscopri la tua energia. Una lettura che va oltre la forma per trovare armonia.',
     credits: 'Consulenza individuale\nDurata ~1 ora',
     object3d: 'face',
-    position: { top: '52%', left: '5%', w: 78, h: 78 },
+    image: '/images/services/nyan-cat.gif',
+    // Nyan cat is ~2.5:1 wide; give it a wider box so the whole frame fits.
+    position: { top: '52%', left: '5%', w: 140, h: 56 },
     blocks: [
       {
         type: 'media',
@@ -239,7 +242,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/wardrobe-messy.png',
+        src: '/images/services/wardrobe-messy.jpg',
       },
       {
         type: 'text',
@@ -249,7 +252,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: '/images/services/wardrobe-before.png',
+        src: '/images/services/wardrobe-before.jpg',
       },
       {
         type: 'caption',
@@ -268,7 +271,7 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/wardrobe-after.png',
+        src: '/images/services/wardrobe-after.jpg',
       },
     ],
   },
@@ -281,12 +284,13 @@ export const IMMAGINE_SERVICES: ServiceData[] = [
     desc: 'Diagnosi cromatica avanzata con il metodo RAH. Il test più preciso per identificare la tua palette ideale.',
     credits: 'Consulenza individuale\nDurata ~1 ora',
     object3d: 'vials',
+    image: '/images/services/rah-rainbow.gif',
     position: { top: '62%', right: '12%', w: 92, h: 92 },
     blocks: [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/rah-test.png',
+        src: '/images/services/rah-test.jpg',
       },
       {
         type: 'text',
@@ -330,7 +334,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&q=80',
+        src: '/images/services/wardrobe-messy.jpg',
       },
       {
         type: 'text',
@@ -340,7 +344,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80',
+        src: '/images/services/tailor-fabric.jpg',
       },
       {
         type: 'caption',
@@ -360,7 +364,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '21/9',
-        src: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?w=1600&q=80',
+        src: '/images/services/wide-tailor.jpg',
       },
       {
         type: 'text',
@@ -370,7 +374,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=1200&q=80',
+        src: '/images/services/fabric-texture.jpg',
       },
       {
         type: 'caption',
@@ -387,7 +391,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=900&q=80',
+        src: '/images/services/wardrobe-before.jpg',
       },
     ],
   },
@@ -405,7 +409,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1200&q=80',
+        src: '/images/services/wardrobe-after.jpg',
       },
       {
         type: 'text',
@@ -415,7 +419,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1606293459209-73f0f64fcfa9?w=1200&q=80',
+        src: '/images/services/modifiche-tools.jpg',
       },
       {
         type: 'list',
@@ -435,7 +439,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: 'https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?w=900&q=80',
+        src: '/images/services/modifiche-close.jpg',
       },
       {
         type: 'text',
@@ -445,7 +449,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '21/9',
-        src: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600&q=80',
+        src: '/images/services/fabric-roll.jpg',
       },
     ],
   },
@@ -463,7 +467,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=1200&q=80',
+        src: '/images/services/identita-cromatica-hero.jpg',
       },
       {
         type: 'text',
@@ -473,7 +477,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '21/9',
-        src: 'https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?w=1600&q=80',
+        src: '/images/services/textile-wide.jpg',
       },
       {
         type: 'caption',
@@ -492,7 +496,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: 'https://images.unsplash.com/photo-1604176354204-9268737828e4?w=900&q=80',
+        src: '/images/services/rah-test.jpg',
       },
       {
         type: 'divider',
@@ -505,7 +509,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=1200&q=80',
+        src: '/images/services/fabric-texture.jpg',
       },
     ],
   },
@@ -523,7 +527,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80',
+        src: '/images/services/vintage-clothes.jpg',
       },
       {
         type: 'text',
@@ -533,7 +537,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: 'https://images.unsplash.com/photo-1593030103066-0093718efeb9?w=900&q=80',
+        src: '/images/services/restauro-capo.jpg',
       },
       {
         type: 'caption',
@@ -553,7 +557,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '21/9',
-        src: 'https://images.unsplash.com/photo-1558769132-92e42a80f7e2?w=1600&q=80',
+        src: '/images/services/tailor-shop.jpg',
       },
       {
         type: 'text',
@@ -563,7 +567,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&q=80',
+        src: '/images/services/wardrobe-messy.jpg',
       },
     ],
   },
@@ -581,7 +585,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/chiara-portrait.png',
+        src: '/images/services/chiara-portrait.jpg',
       },
       {
         type: 'text',
@@ -591,7 +595,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: '/images/services/fabric-texture.png',
+        src: '/images/services/fabric-texture.jpg',
       },
       {
         type: 'caption',
@@ -611,7 +615,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '21/9',
-        src: '/images/services/gradient-abstract.png',
+        src: '/images/services/gradient-abstract.jpg',
       },
     ],
   },
@@ -629,7 +633,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/wardrobe-messy.png',
+        src: '/images/services/wardrobe-messy.jpg',
       },
       {
         type: 'text',
@@ -639,7 +643,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '3/4',
-        src: '/images/services/fabric-texture.png',
+        src: '/images/services/fabric-texture.jpg',
       },
       {
         type: 'list',
@@ -654,7 +658,7 @@ export const SARTORIA_SERVICES: ServiceData[] = [
       {
         type: 'media',
         ratio: '16/10',
-        src: '/images/services/wardrobe-after.png',
+        src: '/images/services/wardrobe-after.jpg',
       },
       {
         type: 'text',
