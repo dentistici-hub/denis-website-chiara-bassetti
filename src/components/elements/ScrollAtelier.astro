@@ -288,14 +288,15 @@ const HOTSPOTS = [
 
     for (const i of order) {
       const img = new Image();
-      img.src = `${FRAME_DIR}${pad4(i + 1)}.jpg`;
-      img.decoding = 'async';
+      // CRITICAL: attach onload/onerror BEFORE setting src. When the image
+      // is already in the browser HTTP cache (very likely here since we
+      // prefetch on entry from the immagine page), the load event can fire
+      // synchronously once src is set. If the handler isn't attached yet,
+      // we miss the event entirely, loadedCount never reaches FRAME_COUNT,
+      // and the loader stays on forever.
       img.onload = () => {
         loadedCount++;
         updateLoader();
-        // Re-tick on every load so the canvas keeps catching up as frames
-        // stream in -- user sees the image appear as soon as any relevant
-        // frame is ready, not only after the exact requested frame.
         tick();
         maybeHideLoader();
       };
@@ -304,6 +305,19 @@ const HOTSPOTS = [
         updateLoader();
         maybeHideLoader();
       };
+      img.decoding = 'async';
+      img.src = `${FRAME_DIR}${pad4(i + 1)}.jpg`;
+      // Defensive: if the image is ALREADY complete by the time we register
+      // it (cache hit so fast the event fired before control returned here),
+      // manually fire the onload callback.
+      if (img.complete && img.naturalWidth > 0) {
+        // Use a microtask so the semantics match the normal async onload --
+        // loadedCount updates happen in the same batch for all ready-on-entry
+        // cached frames.
+        Promise.resolve().then(() => {
+          if (img.onload) (img.onload as any)(new Event('load'));
+        });
+      }
       images[i] = img;
     }
   }
