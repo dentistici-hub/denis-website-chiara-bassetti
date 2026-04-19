@@ -24,20 +24,23 @@ const { class: className = '' } = Astro.props;
 const FRAME_COUNT = 193;
 const BASE = import.meta.env.BASE_URL;
 
-// The scroll animation plays in REVERSE (scroll 0 = last frame in natural
-// playback order, scroll 1 = first frame). We play the FULL range so every
-// frame is reachable -- previously truncating at an intermediate end frame
-// meant the opening "calm" composition (at frame 1) was never shown.
-const START_FRAME = FRAME_COUNT; // 193
-const END_FRAME = 1;             // play all the way through
+// Scroll timeline:
+//   0.0 - ANIMATION_END  = video scrubs from START_FRAME -> END_FRAME
+//   ANIMATION_END - 1.0  = HOLD zone, canvas stays on END_FRAME
+// The hold gives the user time to see the hotspots without needing pixel-
+// perfect scroll control. Without it, a fast scroll skips past the payload
+// frame entirely.
+const START_FRAME = FRAME_COUNT; // 193 -- intro / chaos end
+const END_FRAME = 1;             // 1 -- calm "all-services-visible" composition
+const ANIMATION_END = 0.65;      // 65% of scroll plays the video, 35% holds
 
-// Hotspots -- visible from 0.5 progress onward so user reaches the
-// interactive zone about halfway through scroll.
+// Hotspots visible during the HOLD zone (after animation completes). Fade
+// in as the animation resolves so they don't compete with the motion.
 const HOTSPOTS = [
-  { id: 'abiti',     service: 'Abito su misura',     from: 0.55, to: 1.0, x: 22, y: 52 },
-  { id: 'modifiche', service: 'Modifiche sartoriali', from: 0.55, to: 1.0, x: 42, y: 58 },
-  { id: 'tessuti',   service: 'Consulenza tessuti',   from: 0.55, to: 1.0, x: 60, y: 62 },
-  { id: 'restauro',  service: 'Restauro capi',        from: 0.55, to: 1.0, x: 78, y: 56 },
+  { id: 'abiti',     service: 'Abito su misura',     from: 0.6, to: 1.0, x: 22, y: 52 },
+  { id: 'modifiche', service: 'Modifiche sartoriali', from: 0.6, to: 1.0, x: 42, y: 58 },
+  { id: 'tessuti',   service: 'Consulenza tessuti',   from: 0.6, to: 1.0, x: 60, y: 62 },
+  { id: 'restauro',  service: 'Restauro capi',        from: 0.6, to: 1.0, x: 78, y: 56 },
 ];
 ---
 
@@ -202,13 +205,14 @@ const HOTSPOTS = [
   function tick() {
     rafPending = false;
     const progress = computeProgress();
-    // Reverse playback from START_FRAME to END_FRAME. We STOP at END_FRAME
-    // (the "hotspot-ready" composition) rather than going all the way back
-    // to frame 1 -- this way user lands on the interactive view and can
-    // stay there while they click the services.
-    const startIdx = START_FRAME - 1; // 0-indexed
+    // Animation plays across 0 -> ANIMATION_END. After that, the canvas is
+    // pinned on END_FRAME while the user continues scrolling through the
+    // hold zone. This prevents users from scrolling past the hotspot view
+    // before they can click anything.
+    const animProgress = Math.min(progress / ANIMATION_END, 1);
+    const startIdx = START_FRAME - 1;
     const endIdx = END_FRAME - 1;
-    const frameIdx = Math.round(startIdx + (endIdx - startIdx) * progress);
+    const frameIdx = Math.round(startIdx + (endIdx - startIdx) * animProgress);
     const safeIdx = Math.max(0, Math.min(FRAME_COUNT - 1, frameIdx));
     if (safeIdx !== currentFrame) {
       drawFrame(safeIdx);
@@ -386,12 +390,14 @@ const HOTSPOTS = [
 
 <style>
   .atelier-hero {
-    /* Scroll section height. Shorter than before (250vh) so the scrub
-       ends quicker and the user can interact with hotspots sooner. */
+    /* Section is 300vh: ~195vh (65%) for animation scrub, ~105vh (35%)
+       for the HOLD zone where the canvas stays on the final frame and
+       hotspots are fully visible. The hold zone is the "stop" Denis
+       asked for -- ensures users can't blast past the interactive view. */
     position: relative;
-    height: 250vh;
+    height: 300vh;
     width: 100%;
-    background: #BC9181; /* terracotta plaster, matches page bg */
+    background: #BC9181;
   }
 
   .atelier-hero__sticky {
