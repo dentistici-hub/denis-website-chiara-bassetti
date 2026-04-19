@@ -408,11 +408,21 @@ const HOTSPOTS = [
     /* Section is 300vh: ~195vh (65%) for animation scrub, ~105vh (35%)
        for the HOLD zone where the canvas stays on the final frame and
        hotspots are fully visible. The hold zone is the "stop" Denis
-       asked for -- ensures users can't blast past the interactive view. */
+       asked for -- ensures users can't blast past the interactive view.
+
+       On touch devices a single flick can carry several viewports of
+       momentum, so we stretch the section to 550vh under 900px -- more
+       travel per frame, one flick no longer clears the whole animation. */
     position: relative;
     height: 300vh;
     width: 100%;
     background: #BC9181;
+  }
+
+  @media (max-width: 900px) {
+    .atelier-hero {
+      height: 550vh;
+    }
   }
 
   .atelier-hero__sticky {

@@ -20,9 +20,17 @@ import ServicePanel from './ServicePanel.astro';
 </div>
 <ServicePanel />
 
-<script data-astro-rerun>
+<script>
+  // Re-init on every page load: first load + every SPA swap via ClientRouter.
+  // `data-astro-rerun` only works on scripts Astro treats as inline modules,
+  // which wasn't firing here. `astro:page-load` is the pattern used elsewhere
+  // in this project (BaseLayout) and covers both cases reliably.
   import { initServiceScatter } from '../../scripts/service-scatter';
-  initServiceScatter();
+
+  document.addEventListener('astro:page-load', () => {
+    if (!document.getElementById('svc-scatter-items')) return;
+    initServiceScatter();
+  });
 </script>
 
 <style>

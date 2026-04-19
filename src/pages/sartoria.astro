@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ScrollAtelier from '../components/elements/ScrollAtelier.astro';
+import ServicePanel from '../components/elements/ServicePanel.astro';
 
 const services = [
   {
@@ -103,7 +104,46 @@ const services = [
       >@chiarabassetti.studio</a>
     </section>
   </div>
+
+  <!-- Side panel: opens when an atelier hotspot is clicked. Single instance
+       reused for all four services. -->
+  <ServicePanel />
 </BaseLayout>
+
+<script>
+  import { initServicePanel, openServicePanel, isServicePanelOpen } from '../scripts/service-panel';
+  import { SARTORIA_SERVICES } from '../scripts/service-data';
+
+  // Map atelier hotspot ids to the sartoria service entries.
+  const HOTSPOT_TO_SERVICE_IDX: Record<string, number> = {
+    abiti:     0, // Abito Su Misura
+    modifiche: 1, // Modifiche Sartoriali
+    tessuti:   2, // Consulenza Tessuti
+    restauro:  3, // Riparazioni / restauro tessile
+  };
+
+  let initialized = false;
+
+  document.addEventListener('astro:page-load', () => {
+    if (!document.getElementById('svc-panel')) return;
+
+    if (!initialized) {
+      initServicePanel();
+      initialized = true;
+    }
+
+    window.addEventListener('atelier-service-open', ((e: CustomEvent) => {
+      if (isServicePanelOpen()) return;
+      const id = e.detail?.id as string | undefined;
+      if (!id) return;
+      const idx = HOTSPOT_TO_SERVICE_IDX[id];
+      if (idx === undefined) return;
+      const svc = SARTORIA_SERVICES[idx];
+      if (!svc) return;
+      openServicePanel(svc);
+    }) as EventListener);
+  });
+</script>
 
 <style>
   /* ================= CONTENT COLUMN ================= */
