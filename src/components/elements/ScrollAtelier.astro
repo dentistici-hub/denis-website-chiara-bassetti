@@ -309,13 +309,12 @@ const HOTSPOTS = [
       img.src = `${FRAME_DIR}${pad4(i + 1)}.jpg`;
       // Defensive: if the image is ALREADY complete by the time we register
       // it (cache hit so fast the event fired before control returned here),
-      // manually fire the onload callback.
+      // manually fire the onload callback. Note: the script runs as plain
+      // JS (define:vars scripts bypass TypeScript compilation) -- no TS
+      // syntax like `as any` allowed here.
       if (img.complete && img.naturalWidth > 0) {
-        // Use a microtask so the semantics match the normal async onload --
-        // loadedCount updates happen in the same batch for all ready-on-entry
-        // cached frames.
         Promise.resolve().then(() => {
-          if (img.onload) (img.onload as any)(new Event('load'));
+          if (img.onload) img.onload(new Event('load'));
         });
       }
       images[i] = img;
