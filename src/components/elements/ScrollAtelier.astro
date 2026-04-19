@@ -24,15 +24,12 @@ const { class: className = '' } = Astro.props;
 const FRAME_COUNT = 193;
 const BASE = import.meta.env.BASE_URL;
 
-// The scroll animation plays in REVERSE (scroll 0 = last frame, scroll 1 =
-// some earlier frame). END_FRAME is where the scrub STOPS -- we don't go
-// all the way to frame 1, we stop at the composition that shows the
-// clickable atelier elements clearly. User lands on the animation end and
-// holds there while they interact with the hotspots.
-// Tune END_FRAME after visually checking frames to find the sewing-machine
-// / corkboard / armchair composition Denis referenced.
-const START_FRAME = FRAME_COUNT; // 193 -- close-up / chaos end
-const END_FRAME = 90;            // target "hotspot-ready" composition
+// The scroll animation plays in REVERSE (scroll 0 = last frame in natural
+// playback order, scroll 1 = first frame). We play the FULL range so every
+// frame is reachable -- previously truncating at an intermediate end frame
+// meant the opening "calm" composition (at frame 1) was never shown.
+const START_FRAME = FRAME_COUNT; // 193
+const END_FRAME = 1;             // play all the way through
 
 // Hotspots -- visible from 0.5 progress onward so user reaches the
 // interactive zone about halfway through scroll.
