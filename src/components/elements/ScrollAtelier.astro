@@ -393,29 +393,17 @@ const HOTSPOTS = [
     background: #BC9181;
   }
 
-  /* Adaptive frame -- smaller on wider screens so the video reads as a
-     framed piece of art mounted on the plaster wall. The further "away"
-     it sits on desktop, the denser each rendered pixel looks. */
+  /* Frame fills the viewport completely. drawFrame uses cover logic:
+     whichever image dimension is smaller relative to canvas gets scaled
+     up to fit, the other gets cropped. On a landscape desktop viewport
+     with our 9:16 portrait source, this fits WIDTH and crops some from
+     top + bottom (the atelier is centered vertically in the source so
+     key content stays in view). On mobile portrait, it's a natural 1:1
+     fit with no crop. No terracotta margins on any screen. */
   .atelier-hero__frame {
     position: relative;
-    aspect-ratio: 9 / 16;
-    height: min(100%, 92vh);
-    max-width: 100%;
-  }
-
-  /* Narrow the frame progressively on larger viewports.
-     640px  -> canvas fills vertically
-     1100px -> 82vh
-     1500px -> 70vh
-     1800px -> 62vh */
-  @media (min-width: 1100px) {
-    .atelier-hero__frame { height: 82vh; }
-  }
-  @media (min-width: 1500px) {
-    .atelier-hero__frame { height: 70vh; }
-  }
-  @media (min-width: 1800px) {
-    .atelier-hero__frame { height: 62vh; }
+    width: 100%;
+    height: 100%;
   }
 
   .atelier-hero__canvas {
