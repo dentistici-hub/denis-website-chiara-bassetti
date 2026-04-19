@@ -37,15 +37,26 @@ const ANIMATION_END = 0.65;      // 65% of scroll plays the video, 35% holds
 // Hotspots visible during the HOLD zone (after animation completes). Fade
 // in as the animation resolves so they don't compete with the motion.
 const HOTSPOTS = [
-  { id: 'abiti',     service: 'Abito su misura',     from: 0.6, to: 1.0, x: 22, y: 52 },
-  { id: 'modifiche', service: 'Modifiche sartoriali', from: 0.6, to: 1.0, x: 42, y: 58 },
-  { id: 'tessuti',   service: 'Consulenza tessuti',   from: 0.6, to: 1.0, x: 60, y: 62 },
-  { id: 'restauro',  service: 'Restauro capi',        from: 0.6, to: 1.0, x: 78, y: 56 },
+  { id: 'abiti',     service: 'Abito su misura',     from: 0.6, to: 1.0, x: 26, y: 46 },
+  { id: 'modifiche', service: 'Modifiche sartoriali', from: 0.6, to: 1.0, x: 48, y: 48 },
+  { id: 'tessuti',   service: 'Consulenza tessuti',   from: 0.6, to: 1.0, x: 46, y: 63 },
+  { id: 'restauro',  service: 'Restauro capi',        from: 0.6, to: 1.0, x: 86, y: 48 },
 ];
 ---
 
 <section class:list={['atelier-hero', className]} data-atelier-hero>
   <div class="atelier-hero__sticky">
+    <!-- Ceiling overlay -- hero typography lives up on the dome, above the
+         scene. pointer-events:none so it never blocks hotspot clicks. -->
+    <div class="atelier-overlay">
+      <h1 class="atelier-overlay__name">Chiara Bassetti</h1>
+      <p class="atelier-overlay__role">Sartoria su misura</p>
+      <p class="atelier-overlay__statement">
+        Ogni punto ha un pensiero.<br />
+        Ogni capo, una storia.
+      </p>
+    </div>
+
     <!-- Canvas-sized frame wrapper -- everything inside scales with it so
          hotspots + loader + progress all anchor to video bounds, not
          viewport bounds. On wide screens the frame shrinks to ~65vh,
@@ -438,6 +449,58 @@ const HOTSPOTS = [
     display: block;
   }
 
+  /* ---- Ceiling overlay ----
+     Hero typography sits on top of the dome. The atelier has roughly the
+     upper 40% of every frame taken up by the terracotta ceiling -- great
+     empty plaster canvas, so we put the name there. Scales with viewport. */
+  .atelier-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: clamp(1.75rem, 5vh, 5rem) clamp(1.25rem, 5vw, 4rem) 0;
+    text-align: center;
+    color: #F8F0E8;
+    pointer-events: none;
+    text-shadow: 0 2px 22px rgba(58, 22, 12, 0.45);
+  }
+
+  .atelier-overlay__name {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 1rem + 5.5vw, 7rem);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+    margin: 0;
+  }
+
+  .atelier-overlay__role {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(0.7rem, 0.6rem + 0.3vw, 0.9rem);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(248, 240, 232, 0.85);
+    margin: clamp(0.6rem, 1.6vh, 1.25rem) 0 0;
+  }
+
+  .atelier-overlay__statement {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(1rem, 0.7rem + 1.1vw, 1.7rem);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    margin: clamp(1rem, 2.8vh, 2.25rem) auto 0;
+    max-width: 34ch;
+  }
+
+  @media (max-width: 640px) {
+    .atelier-overlay__statement br {
+      display: none;
+    }
+  }
+
   /* ---- Hotspots ---- */
   .atelier-hero__hotspots {
     position: absolute;
@@ -450,8 +513,8 @@ const HOTSPOTS = [
     left: var(--hx);
     top: var(--hy);
     transform: translate(-50%, -50%);
-    width: 44px;
-    height: 44px;
+    width: 57px;
+    height: 57px;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -482,8 +545,8 @@ const HOTSPOTS = [
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 10px;
-    height: 10px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     background: rgba(255, 240, 220, 0.95);
     transform: translate(-50%, -50%);

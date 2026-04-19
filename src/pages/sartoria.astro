@@ -43,16 +43,9 @@ const services = [
   <!-- ========== CONTENT COLUMN ========== -->
   <div class="sart-content">
 
-    <!-- ========== HERO ========== -->
-    <section class="sart-hero" id="hero" data-mannequin-target="hero">
-      <h1 class="sart-hero__name">Chiara Bassetti</h1>
-      <p class="sart-hero__role">SARTORIA SU MISURA</p>
-
-      <p class="sart-hero__statement">
-        Ogni punto ha un pensiero.<br />
-        Ogni capo, una storia.
-      </p>
-
+    <!-- ========== INTRO (hero typography lives on the atelier ceiling now,
+         this block is the grounded brief + atelier meta) ========== -->
+    <section class="sart-intro" id="hero" data-mannequin-target="hero">
       <p class="sart-hero__brief">
         Cucio abiti su misura con tecnica sartoriale italiana,
         tessuti scelti e dettagli costruiti con te. Atelier a Torino,
@@ -127,46 +120,13 @@ const services = [
     padding: var(--space-2xl) clamp(2rem, 5vw, 6rem);
   }
 
-  /* ---------------- HERO ---------------- */
-  .sart-hero {
+  /* ---------------- INTRO (post-atelier brief + meta) ---------------- */
+  .sart-intro {
     position: relative;
-    min-height: 100vh;
-    min-height: 100svh;
-    padding: clamp(6rem, 14vh, 10rem) clamp(2rem, 4vw, 5rem) var(--space-2xl);
+    padding: clamp(4rem, 10vh, 7rem) clamp(2rem, 4vw, 5rem) var(--space-2xl);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     gap: var(--space-lg);
-  }
-
-  .sart-hero__name {
-    font-family: var(--font-display);
-    font-size: clamp(3rem, 1.5rem + 4vw, 5.5rem);
-    font-weight: var(--display-weight);
-    font-style: var(--display-style);
-    letter-spacing: var(--display-spacing);
-    line-height: 1;
-    color: var(--color-fg);
-    margin: 0;
-  }
-
-  .sart-hero__role {
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-accent);
-    margin: 0;
-  }
-
-  .sart-hero__statement {
-    font-family: var(--font-display);
-    font-size: clamp(1.4rem, 0.8rem + 1.5vw, 2.4rem);
-    font-weight: 300;
-    line-height: var(--leading-snug);
-    letter-spacing: 0.02em;
-    color: var(--color-fg);
-    margin: var(--space-md) 0 0;
   }
 
   .sart-hero__brief {
