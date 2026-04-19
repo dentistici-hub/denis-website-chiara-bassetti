@@ -1,0 +1,70 @@
+---
+/**
+ * Analytics -- lightweight, privacy-aware tracking.
+ *
+ * The component reads three env vars at build time. Set one (and only one)
+ * in `.env` / CI secrets to enable tracking. Absence of all three = no-op.
+ *
+ *   PUBLIC_PLAUSIBLE_DOMAIN   e.g. "chiarabassetti.studio"
+ *   PUBLIC_UMAMI_WEBSITE_ID   e.g. "abcd-1234-..."  (+ PUBLIC_UMAMI_SRC if self-hosted)
+ *   PUBLIC_GA4_ID             e.g. "G-XXXXXXXXXX"
+ *
+ * Plausible and Umami are GDPR-friendly, cookie-free. GA4 requires a
+ * consent banner to be compliant in Italy -- prefer one of the other two.
+ *
+ * SPA navigations (ClientRouter) are handled: all three scripts are
+ * loaded once and forwarded `page_view` events on `astro:page-load`.
+ */
+
+const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN as string | undefined;
+const umamiId         = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID as string | undefined;
+const umamiSrc        = (import.meta.env.PUBLIC_UMAMI_SRC as string | undefined) ?? 'https://cloud.umami.is/script.js';
+const ga4Id           = import.meta.env.PUBLIC_GA4_ID as string | undefined;
+---
+
+{plausibleDomain && (
+  <>
+    <script
+      is:inline
+      defer
+      data-domain={plausibleDomain}
+      src="https://plausible.io/js/script.hash.outbound-links.js"
+    ></script>
+    <script is:inline>
+      window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments); };
+      document.addEventListener('astro:page-load', () => {
+        if (typeof window.plausible === 'function') window.plausible('pageview');
+      });
+    </script>
+  </>
+)}
+
+{umamiId && (
+  <>
+    <script is:inline defer src={umamiSrc} data-website-id={umamiId}></script>
+    <script is:inline>
+      document.addEventListener('astro:page-load', () => {
+        if (window.umami && typeof window.umami.track === 'function') window.umami.track();
+      });
+    </script>
+  </>
+)}
+
+{ga4Id && (
+  <>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}></script>
+    <script is:inline define:vars={{ ga4Id }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', ga4Id, { send_page_view: false });
+      document.addEventListener('astro:page-load', () => {
+        gtag('event', 'page_view', {
+          page_path: location.pathname + location.search,
+          page_title: document.title,
+        });
+      });
+    </script>
+  </>
+)}

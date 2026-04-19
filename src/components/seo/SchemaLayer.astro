@@ -1,0 +1,144 @@
+---
+/**
+ * SchemaLayer -- layered JSON-LD for search + AI answer engines.
+ *
+ * Emits up to five schemas per page:
+ *   1. ProfessionalService (primary business entity) with contact, geo, founder
+ *   2. Person (Chiara Bassetti) linked from the business as founder
+ *   3. Service[] -- one per service offered (filtered by `reality`)
+ *   4. WebPage -- page-specific metadata
+ *   5. FAQPage -- only when `faqs` prop is provided
+ *
+ * The goal is not to rank higher in Google, but to give language models
+ * a clean, disambiguated graph of who Chiara is, where she operates, and
+ * what she does. LLMs cite whoever is easiest to quote confidently.
+ */
+import { site, services, faqs as allFaqs, type FAQ } from '../../content/site';
+
+interface Props {
+  pageTitle: string;
+  pageDescription: string;
+  pageUrl: string;
+  reality?: 'immagine' | 'sartoria' | 'all';
+  faqs?: FAQ[];
+  includeFAQ?: boolean;
+}
+
+const {
+  pageTitle,
+  pageDescription,
+  pageUrl,
+  reality = 'all',
+  faqs,
+  includeFAQ = true,
+} = Astro.props;
+
+const relevantServices =
+  reality === 'all'
+    ? services
+    : services.filter((s) => s.reality === reality);
+
+const businessId = `${site.canonicalDomain}#business`;
+const personId = `${site.canonicalDomain}#founder`;
+
+const businessSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': ['ProfessionalService', 'LocalBusiness'],
+  '@id': businessId,
+  name: site.name,
+  legalName: site.legalName,
+  description: site.description,
+  url: site.canonicalDomain,
+  email: site.contact.email,
+  inLanguage: site.language,
+  foundingDate: site.founded,
+  sameAs: [site.contact.instagram],
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: site.contact.city,
+    addressRegion: site.contact.region,
+    addressCountry: site.contact.country,
+  },
+  areaServed: {
+    '@type': 'City',
+    name: site.contact.city,
+  },
+  founder: { '@id': personId },
+  knowsLanguage: [site.language],
+  slogan: site.tagline,
+  makesOffer: relevantServices.map((s) => ({
+    '@type': 'Offer',
+    itemOffered: {
+      '@type': 'Service',
+      name: s.title,
+    },
+  })),
+};
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  '@id': personId,
+  name: site.founder.name,
+  jobTitle: site.founder.role,
+  description: site.founder.bio,
+  worksFor: { '@id': businessId },
+  knowsAbout: site.founder.knowsAbout,
+  sameAs: site.founder.sameAs,
+};
+
+const serviceSchemas = relevantServices.map((s) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: s.title,
+  description: s.longDescription,
+  serviceType: s.reality === 'sartoria' ? 'Bespoke tailoring' : 'Image consulting',
+  provider: { '@id': businessId },
+  areaServed: {
+    '@type': 'City',
+    name: site.contact.city,
+  },
+  ...(s.duration ? { 'estimatedDuration': s.duration } : {}),
+}));
+
+const webPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: pageTitle,
+  description: pageDescription,
+  url: pageUrl,
+  dateModified: site.lastUpdated,
+  inLanguage: site.language,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: site.name,
+    url: site.canonicalDomain,
+    inLanguage: site.language,
+  },
+  about: { '@id': businessId },
+};
+
+const activeFaqs = faqs ?? (includeFAQ ? allFaqs : []);
+
+const faqSchema =
+  activeFaqs.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: activeFaqs.map((f) => ({
+          '@type': 'Question',
+          name: f.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: f.answer,
+          },
+        })),
+      }
+    : null;
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(businessSchema)} />
+<script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+<script is:inline type="application/ld+json" set:html={JSON.stringify(webPageSchema)} />
+{faqSchema && <script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+{serviceSchemas.map((s) => <script is:inline type="application/ld+json" set:html={JSON.stringify(s)} />)}

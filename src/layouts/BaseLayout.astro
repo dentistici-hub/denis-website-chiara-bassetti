@@ -9,44 +9,102 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
+import SchemaLayer from '../components/seo/SchemaLayer.astro';
+import Analytics from '../components/seo/Analytics.astro';
+import { site } from '../content/site';
 
 interface Props {
   title: string;
   description: string;
   reality?: 'immagine' | 'sartoria';
+  /** Optional OG image path relative to the site root (default: /og-cover.jpg) */
+  ogImage?: string;
+  /** Content-type hint for social cards -- "website" for root, "article" for blog etc. */
+  ogType?: 'website' | 'article';
+  /** Set true only on pages that shouldn't be indexed (e.g. staging copies). */
+  noindex?: boolean;
 }
 
-const { title, description, reality = 'immagine' } = Astro.props;
+const {
+  title,
+  description,
+  reality = 'immagine',
+  ogImage = 'og-cover.jpg',
+  ogType = 'website',
+  noindex = false,
+} = Astro.props;
+
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = new URL(`${import.meta.env.BASE_URL}${ogImage.replace(/^\//, '')}`, Astro.site).toString();
+const pageUrlForSchema = canonicalURL.toString();
 ---
 
 <!doctype html>
-<html lang="it" class={reality}>
+<html lang={site.language} class={reality}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalURL} />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-    <meta property="og:type" content="website" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={site.founder.name} />
+    <meta name="publisher" content={site.name} />
+    <meta name="keywords" content={[
+      'Chiara Bassetti',
+      'image consultant Torino',
+      'armocromia Torino',
+      'consulenza immagine Torino',
+      'sartoria su misura Torino',
+      'abiti su misura Torino',
+      'modifiche sartoriali Torino',
+      'RAH color test',
+      'capsula dopaminica',
+      'restauro capi vintage',
+      'consulenza tessuti',
+      'makedresser',
+    ].join(', ')} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
+    <meta name="googlebot" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+
+    <!-- Local / geo hints -->
+    <meta name="geo.region" content={site.geo.region} />
+    <meta name="geo.placename" content={site.geo.placename} />
+    <meta name="geo.position" content={site.geo.position} />
+    <meta name="ICBM" content={site.geo.position.replace(';', ', ')} />
+
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="alternate" hreflang={site.language} href={canonicalURL} />
+    <link rel="alternate" hreflang="x-default" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:locale" content="it_IT" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content={site.locale} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:alt" content={`${site.name} \u2014 ${site.tagline}`} />
 
-    <script type="application/ld+json" set:html={JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "Chiara Bassetti Studio",
-      "description": "Image Consultant & Makedresser — Consulenza d'immagine e sartoria su misura",
-      "url": "https://chiarabassetti.studio",
-      "@id": "https://chiarabassetti.studio",
-      "sameAs": ["https://www.instagram.com/chiarabassetti.studio/"],
-      "knowsLanguage": "it"
-    })} />
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <!-- Layered JSON-LD (business + person + services + webpage + FAQ) -->
+    <SchemaLayer
+      pageTitle={title}
+      pageDescription={description}
+      pageUrl={pageUrlForSchema}
+      reality={reality}
+    />
 
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
-    <title>{title}</title>
+
+    <!-- Analytics (no-op until env vars are set) -->
+    <Analytics />
 
     <!-- SPA-style client routing so the persistent mannequin survives the
          page swap without being torn down. -->
@@ -120,6 +178,20 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <main id="main-content">
       <slot />
     </main>
+
+    <!-- Crawler-friendly semantic fallback. Visible only when CSS/JS fail
+         to load, but present in the HTML source so AI crawlers and
+         non-JS indexers can still read the business summary + services
+         without executing the cinematic front-end. -->
+    <noscript>
+      <section class="noscript-fallback" aria-label="Riepilogo servizi">
+        <h1>{site.name}</h1>
+        <p>{site.description}</p>
+        <p>Atelier a {site.contact.city}, {site.contact.country} \u2014 su appuntamento.</p>
+        <p>Contatti: <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a> \u00b7 <a href={site.contact.instagram}>{site.contact.instagramHandle}</a></p>
+      </section>
+    </noscript>
+
     <Footer />
 
 
