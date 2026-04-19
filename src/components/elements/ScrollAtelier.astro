@@ -496,6 +496,13 @@ const HOTSPOTS = [
   }
 
   @media (max-width: 640px) {
+    /* Drop the overlay down so it clears the sticky header and sits
+       lower on the dome (the header "Chiara Bassetti" would otherwise
+       kiss the big overlay name). */
+    .atelier-overlay {
+      padding-top: clamp(5.75rem, 14vh, 9rem);
+    }
+
     .atelier-overlay__statement br {
       display: none;
     }
