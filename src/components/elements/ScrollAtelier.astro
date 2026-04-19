@@ -94,10 +94,11 @@ const HOTSPOTS = [
 
 <script define:vars={{ FRAME_COUNT, BASE, START_FRAME, END_FRAME }}>
   const FRAME_DIR = `${BASE}scenes/atelier-frames/`;
-  // Minimum frames loaded before we can safely start showing the scene
-  // and hide the loader. Loader fades at 30% loaded (58 frames) which is
-  // enough to cover the first chunk of scroll without gaps.
-  const MIN_PLAYABLE = Math.ceil(FRAME_COUNT * 0.3);
+  // Loader hides only when ALL frames are loaded AND at least MIN_LOADER_TIME
+  // has elapsed. The 2s floor keeps the "Benvenuti nell'atelier" greeting on
+  // screen long enough to read, even when the cached prefetch makes loading
+  // nearly instant.
+  const MIN_LOADER_TIME = 2000;
 
   let images = [];
   let ctx = null;
@@ -110,6 +111,7 @@ const HOTSPOTS = [
   let hotspots = [];
   let loadedCount = 0;
   let loaderHidden = false;
+  let loaderStartTime = 0;
   let currentFrame = -1;
   let rafPending = false;
   let scrollListener = null;
@@ -236,14 +238,23 @@ const HOTSPOTS = [
 
   function maybeHideLoader() {
     if (loaderHidden || !loaderEl) return;
-    if (loadedCount >= MIN_PLAYABLE) {
-      loaderHidden = true;
-      loaderEl.classList.add('is-hiding');
-      // After the transition finishes, remove from flow
-      setTimeout(() => {
-        if (loaderEl) loaderEl.style.display = 'none';
-      }, 800);
-    }
+    const elapsed = performance.now() - loaderStartTime;
+    const loadingDone = loadedCount >= FRAME_COUNT;
+    if (!loadingDone || elapsed < MIN_LOADER_TIME) return;
+
+    // All frames loaded AND min time elapsed. Force a fresh draw with the
+    // right frame at the current scroll position BEFORE hiding the loader --
+    // this eliminates the "empty canvas until first scroll" bug where tick
+    // had drawn with stale canvas dimensions or before a key frame was ready.
+    sizeCanvas();
+    currentFrame = -1;
+    tick();
+
+    loaderHidden = true;
+    loaderEl.classList.add('is-hiding');
+    setTimeout(() => {
+      if (loaderEl) loaderEl.style.display = 'none';
+    }, 800);
   }
 
   function preload() {
@@ -304,6 +315,12 @@ const HOTSPOTS = [
     loaderBar = document.querySelector('[data-atelier-loader-bar]');
     loaderCount = document.querySelector('[data-atelier-loader-count]');
     if (!section || !canvas) return;
+
+    loaderStartTime = performance.now();
+    // Schedule a deferred hide check at the minimum loader time. If loading
+    // finished before this, we hide at exactly the 2s mark. If loading is
+    // still going, the last onload call wins.
+    setTimeout(() => { maybeHideLoader(); }, MIN_LOADER_TIME + 50);
 
     ctx = canvas.getContext('2d');
     sizeCanvas();
