@@ -163,9 +163,12 @@ export async function openServicePanel(service: ServiceData): Promise<void> {
 
   _open = true;
 
-  // Stop Lenis smooth scroll and lock body
+  // Stop Lenis smooth scroll and lock body.
+  // `panel-open` on <html> lets the header (logo + reality toggle) hide so
+  // the panel's close button doesn't collide with the toggle on mobile.
   window.dispatchEvent(new Event('lenis-stop'));
   document.body.style.overflow = 'hidden';
+  document.documentElement.classList.add('panel-open');
 }
 
 export async function closeServicePanel(): Promise<void> {
@@ -197,6 +200,7 @@ export async function closeServicePanel(): Promise<void> {
 
   _open = false;
   document.body.style.overflow = '';
+  document.documentElement.classList.remove('panel-open');
 
   // Restart Lenis smooth scroll
   window.dispatchEvent(new Event('lenis-start'));

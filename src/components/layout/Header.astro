@@ -37,6 +37,14 @@ const BASE = import.meta.env.BASE_URL;
     z-index: var(--z-header);
     padding: clamp(1rem, 0.8rem + 0.6vw, 1.75rem) clamp(1.5rem, 0.5rem + 2vw, 3rem);
     pointer-events: none;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+
+  /* When a service panel is open, hide the header so the panel's close (X)
+     button doesn't collide with the reality toggle on narrow viewports. */
+  :global(html.panel-open) .header {
+    opacity: 0;
+    visibility: hidden;
   }
 
   .header__inner {
