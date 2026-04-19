@@ -1,0 +1,91 @@
+---
+interface Props {
+  number: string;
+  title: string;
+  desc: string;
+  detail: string;
+  price: string;
+  class?: string;
+}
+
+const { number, title, desc, detail, price, class: className = '' } = Astro.props;
+---
+
+<article class:list={['service-block', className]}>
+  <span class="service-block__number" data-counter={number}>{number}</span>
+  <h3 class="service-block__title" data-split-heading="chars-rise">{title}</h3>
+  <p class="service-block__desc">{desc}</p>
+  <details class="service-block__details">
+    <summary>Come funziona</summary>
+    <div class="service-block__details-content">
+      <p>{detail}</p>
+    </div>
+  </details>
+  <p class="service-block__price">{price}</p>
+</article>
+
+<style>
+  .service-block { position: relative; }
+
+  .service-block__number {
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: var(--space-sm);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .service-block__title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-sm);
+  }
+
+  .service-block__desc {
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+    max-width: 420px;
+    margin-bottom: var(--space-lg);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .service-block__details { margin-bottom: var(--space-md); }
+
+  .service-block__details summary {
+    font-size: var(--text-sm);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    color: var(--color-fg);
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .service-block__details summary::-webkit-details-marker { display: none; }
+  .service-block__details summary::before {
+    content: '+';
+    font-size: var(--text-lg);
+    font-weight: 300;
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+  .service-block__details[open] summary::before { transform: rotate(45deg); }
+  .service-block__details summary:hover { color: var(--color-accent); }
+
+  .service-block__details-content p {
+    padding: var(--space-md) 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+    max-width: 420px;
+  }
+
+  .service-block__price {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+  }
+</style>

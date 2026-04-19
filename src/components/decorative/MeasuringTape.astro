@@ -1,0 +1,21 @@
+---
+interface Props {
+  class?: string;
+  width?: number;
+}
+const { class: className = '', width = 100 } = Astro.props;
+const ticks = Math.floor(width / 10);
+---
+<svg class:list={['deco deco--tape', className]} width={width} height="20" viewBox={`0 0 ${width} 20`} aria-hidden="true">
+  <rect x="0" y="4" width={width} height="12" fill="none" stroke="var(--color-pin)" stroke-width="0.6" rx="1" />
+  {Array.from({ length: ticks }, (_, i) => {
+    const x = i * 10 + 5;
+    const isMajor = i % 5 === 0;
+    return (
+      <g>
+        <line x1={x} y1="4" x2={x} y2={isMajor ? 12 : 8} stroke="var(--color-pin)" stroke-width={isMajor ? 0.8 : 0.4} />
+        {isMajor && <text x={x} y="18" text-anchor="middle" fill="var(--color-fg-faint)" font-size="5">{i}</text>}
+      </g>
+    );
+  })}
+</svg>

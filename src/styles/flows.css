@@ -1,0 +1,73 @@
+/* ============================================
+   COLLAGE FLOW LAYOUT SYSTEM
+   12-column grid with absolute overlays
+   ============================================ */
+
+.flow {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  overflow: visible;
+}
+
+.flow__grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--gutter);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  position: relative;
+}
+
+/* Decorative layer -- sits on top of grid, absolutely positioned */
+.flow__decorative {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-decorative);
+}
+
+/* Individual decorative elements */
+.deco {
+  position: absolute;
+  pointer-events: none;
+  transition: fill var(--duration-slow) var(--ease-in-out),
+              stroke var(--duration-slow) var(--ease-in-out),
+              color var(--duration-slow) var(--ease-in-out);
+}
+
+.deco[data-cursor-react] {
+  pointer-events: auto;
+}
+
+/* Collage item -- can break out of grid */
+.collage-item {
+  position: relative;
+}
+
+.collage-item--bleed-left {
+  margin-left: calc(var(--gutter) * -1);
+}
+
+.collage-item--bleed-right {
+  margin-right: calc(var(--gutter) * -1);
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .flow__grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  /* On mobile, all items stack in single-column flow */
+  .flow__grid > * {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+
+  /* Hide most decorative elements on mobile */
+  .deco--desktop-only {
+    display: none;
+  }
+}

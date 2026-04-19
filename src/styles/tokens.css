@@ -1,0 +1,119 @@
+/* ============================================
+   DUAL REALITY DESIGN TOKENS
+   Toggle .immagine / .sartoria on <html>
+   ============================================ */
+
+:root {
+  /* Shared constants */
+  --max-width: 1400px;
+  --gutter: clamp(1.5rem, 1rem + 3vw, 4rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 200ms;
+  --duration-normal: 500ms;
+  --duration-slow: 1000ms;
+
+  /* Fluid spacing */
+  --space-xs: clamp(0.25rem, 0.15rem + 0.3vw, 0.5rem);
+  --space-sm: clamp(0.5rem, 0.3rem + 0.5vw, 0.75rem);
+  --space-md: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+  --space-lg: clamp(2rem, 1rem + 3vw, 4rem);
+  --space-xl: clamp(3rem, 1.5rem + 5vw, 7rem);
+  --space-2xl: clamp(5rem, 3rem + 7vw, 12rem);
+  --space-section: clamp(6rem, 4rem + 8vw, 14rem);
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.2;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+
+  /* Z-index layers (used within isolation:isolate sections) */
+  --z-bg: 0;
+  --z-content: 1;
+  --z-overlap: 2;
+  --z-decorative: 5;
+  --z-interactive: 10;
+  --z-header: 100;
+  --z-overlay: 200;
+  --z-cursor: 9999;
+}
+
+/* ---- REALITY: IMMAGINE (default) ---- */
+html.immagine, html:not(.sartoria) {
+  --color-bg: #FAF8F5;
+  --color-fg: #1A1A1A;
+  --color-fg-muted: #6B6B6B;
+  --color-fg-faint: #A8A29E;
+  --color-accent: #B8364B;
+  --color-accent-secondary: #7A2040;
+  --color-accent-tertiary: #D4878F;
+  --color-palette-1: #B8364B;
+  --color-palette-2: #7A2040;
+  --color-palette-3: #1B6B6B;
+  --color-palette-4: #2D5A3E;
+  --color-palette-5: #D4878F;
+  --color-palette-6: #6B2D5A;
+  --color-palette-7: #B8A060;
+  --color-palette-8: #C45A5A;
+  --color-border: rgba(26, 26, 26, 0.08);
+
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
+  --font-body: 'DM Sans Variable', 'DM Sans', 'Helvetica Neue', sans-serif;
+
+  --text-xs: clamp(0.7rem, 0.65rem + 0.2vw, 0.8rem);
+  --text-sm: clamp(0.8rem, 0.75rem + 0.2vw, 0.875rem);
+  --text-base: clamp(0.95rem, 0.85rem + 0.4vw, 1.1rem);
+  --text-lg: clamp(1.1rem, 0.9rem + 0.8vw, 1.5rem);
+  --text-xl: clamp(1.4rem, 1rem + 1.5vw, 2.2rem);
+  --text-2xl: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+  --text-3xl: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  --text-display: clamp(3.5rem, 2rem + 6vw, 8rem);
+
+  --display-weight: 300;
+  --display-style: italic;
+  --display-spacing: -0.03em;
+  --body-weight: 400;
+
+  /* Decorative element colors */
+  --color-thread: #7A2040;
+  --color-stitch: #B8364B;
+  --color-pin: #C9A080;
+  --color-swatch-border: rgba(26, 26, 26, 0.15);
+  --color-decorative-faint: rgba(184, 54, 75, 0.08);
+}
+
+/* ---- REALITY: SARTORIA ---- */
+html.sartoria {
+  --color-bg: #0A0A0A;
+  --color-fg: #F0EDE8;
+  --color-fg-muted: #8C8580;
+  --color-fg-faint: #5A5550;
+  --color-accent: #C9A96E;
+  --color-accent-secondary: #8B7355;
+  --color-border: rgba(240, 237, 232, 0.1);
+
+  --font-display: 'DM Sans Variable', 'DM Sans', 'Helvetica Neue', sans-serif;
+  --font-body: 'DM Sans Variable', 'DM Sans', 'Helvetica Neue', sans-serif;
+
+  --text-xs: clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+  --text-sm: clamp(0.75rem, 0.7rem + 0.2vw, 0.825rem);
+  --text-base: clamp(0.9rem, 0.8rem + 0.35vw, 1.05rem);
+  --text-lg: clamp(1rem, 0.85rem + 0.7vw, 1.35rem);
+  --text-xl: clamp(1.3rem, 0.95rem + 1.3vw, 2rem);
+  --text-2xl: clamp(1.8rem, 1.1rem + 2.8vw, 3.2rem);
+  --text-3xl: clamp(2.2rem, 1.3rem + 3.5vw, 4.5rem);
+  --text-display: clamp(3rem, 1.8rem + 5.5vw, 7.5rem);
+
+  --display-weight: 300;
+  --display-style: normal;
+  --display-spacing: 0.08em;
+  --body-weight: 300;
+
+  /* Decorative element colors */
+  --color-thread: #C9A96E;
+  --color-stitch: #8B7355;
+  --color-pin: #D4B87A;
+  --color-swatch-border: rgba(240, 237, 232, 0.15);
+  --color-decorative-faint: rgba(201, 169, 110, 0.08);
+}

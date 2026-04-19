@@ -1,0 +1,35 @@
+---
+interface Props {
+  class?: string;
+  color: string;
+  label?: string;
+  width?: number;
+}
+
+const { class: className = '', color, label = '', width = 48 } = Astro.props;
+const height = Math.round(width * 1.4);
+---
+
+<div
+  class:list={['deco deco--pantone', className]}
+  aria-hidden="true"
+  data-cursor-react
+  style={`width: ${width}px; height: ${height}px;`}
+>
+  <div style={`background-color: ${color}; height: 70%; border-radius: 2px 2px 0 0;`}></div>
+  <div style="height: 30%; display: flex; align-items: center; justify-content: center;">
+    <span style="font-size: 6px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-fg-faint);">{label}</span>
+  </div>
+</div>
+
+<style>
+  .deco--pantone {
+    background: var(--color-bg);
+    border: 1px solid var(--color-swatch-border);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: background-color var(--duration-slow) var(--ease-in-out),
+                border-color var(--duration-slow) var(--ease-in-out);
+  }
+</style>

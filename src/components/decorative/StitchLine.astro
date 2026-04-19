@@ -1,0 +1,36 @@
+---
+interface Props {
+  class?: string;
+  width?: string;
+  orientation?: 'horizontal' | 'vertical';
+}
+
+const { class: className = '', width = '120', orientation = 'horizontal' } = Astro.props;
+const isVert = orientation === 'vertical';
+const w = isVert ? '10' : width;
+const h = isVert ? width : '10';
+const stitchCount = Math.floor(parseInt(width) / 12);
+---
+
+<svg
+  class:list={['deco deco--stitch', className]}
+  width={w}
+  height={h}
+  viewBox={`0 0 ${w} ${h}`}
+  aria-hidden="true"
+>
+  {Array.from({ length: stitchCount }, (_, i) => {
+    const pos = i * 12 + 6;
+    return isVert ? (
+      <g>
+        <line x1="5" y1={pos} x2="5" y2={pos + 8} stroke="var(--color-stitch)" stroke-width="0.8" />
+        <line x1="2" y1={pos + 4} x2="8" y2={pos + 4} stroke="var(--color-stitch)" stroke-width="0.5" />
+      </g>
+    ) : (
+      <g>
+        <line x1={pos} y1="5" x2={pos + 8} y2="5" stroke="var(--color-stitch)" stroke-width="0.8" />
+        <line x1={pos + 4} y1="2" x2={pos + 4} y2="8" stroke="var(--color-stitch)" stroke-width="0.5" />
+      </g>
+    );
+  })}
+</svg>

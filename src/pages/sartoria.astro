@@ -1,0 +1,362 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const services = [
+  {
+    num: '01',
+    title: 'Abito su misura',
+    desc: 'Cerimonia, giornaliero, occasione. Prima prova, rifinitura, consegna. Tecnica sartoriale italiana.',
+  },
+  {
+    num: '02',
+    title: 'Modifiche sartoriali',
+    desc: 'Adattamenti, orli, rimodellamento capi esistenti. Ridisegnare la vestibilità.',
+  },
+  {
+    num: '03',
+    title: 'Restauro capi',
+    desc: 'Riparazione e reinterpretazione di capi vintage, storici o ereditati. Ogni pezzo ritrova una vita.',
+  },
+  {
+    num: '04',
+    title: 'Consulenza tessuti',
+    desc: 'Scelta del tessuto giusto per l\u2019occasione, il corpo, la palette. Lana, seta, lino, cotone, mischiati con criterio.',
+  },
+];
+---
+
+<BaseLayout
+  reality="sartoria"
+  title="Chiara Bassetti — Sartoria su misura"
+  description="Sartoria su misura a Torino. Abiti cuciti a mano, modifiche sartoriali, restauro di capi vintage."
+>
+  <!-- ========== HERO ========== -->
+  <section class="sart-hero" id="hero">
+    <div class="sart-hero__grid">
+      <h1 class="sart-hero__name">Chiara Bassetti</h1>
+      <p class="sart-hero__role">SARTORIA SU MISURA</p>
+
+      <p class="sart-hero__statement">
+        Ogni punto ha un pensiero.<br />
+        Ogni capo, una storia.
+      </p>
+
+      <p class="sart-hero__brief">
+        Cucio abiti su misura con tecnica sartoriale italiana,
+        tessuti scelti e dettagli costruiti con te. Atelier a Torino,
+        consulenze su appuntamento.
+      </p>
+
+      <!-- Mannequin is rendered once, persistently, in BaseLayout.astro.
+           She appears at the center-bottom of the viewport via position:fixed
+           and survives page swaps via transition:persist. -->
+      <div class="sart-hero__mannequin-spacer" aria-hidden="true"></div>
+
+      <!-- Annotation -->
+      <div class="sart-hero__meta">
+        <span class="sart-hero__meta-label">[ ATELIER ]</span>
+        <span class="sart-hero__meta-value">Torino · su appuntamento</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SERVICES ========== -->
+  <section class="sart-services" id="servizi">
+    <div class="sart-services__inner">
+      <div class="sart-services__head">
+        <span class="sart-services__eyebrow">[ COSA CUCIO ]</span>
+        <h2 class="sart-services__heading">
+          Quattro modi di lavorare la stoffa.
+        </h2>
+      </div>
+
+      <div class="sart-services__list">
+        {services.map((s) => (
+          <article class="sart-svc">
+            <span class="sart-svc__num">{s.num}</span>
+            <h3 class="sart-svc__title">{s.title}</h3>
+            <p class="sart-svc__desc">{s.desc}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA ========== -->
+  <section class="sart-cta" id="contatti">
+    <div class="sart-cta__inner">
+      <p class="sart-cta__text">
+        Prenota una consulenza in atelier.<br />
+        Ogni abito su misura inizia da un incontro.
+      </p>
+      <a href="mailto:hello@chiarabassetti.studio" class="sart-cta__btn">
+        SCRIVIMI &rarr;
+      </a>
+      <a
+        href="https://instagram.com/chiarabassetti.studio"
+        target="_blank"
+        rel="noopener"
+        class="sart-cta__ig"
+      >@chiarabassetti.studio</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ---------------- HERO ---------------- */
+  .sart-hero {
+    position: relative;
+    padding: clamp(6rem, 12vh, 10rem) var(--gutter) var(--space-2xl);
+    max-width: var(--max-width);
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .sart-hero__grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-md);
+    width: 100%;
+    row-gap: var(--space-lg);
+    align-items: start;
+  }
+
+  .sart-hero__name {
+    grid-column: 1 / span 9;
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    letter-spacing: var(--display-spacing);
+    line-height: var(--leading-tight);
+    color: var(--color-fg);
+    margin: 0;
+  }
+
+  .sart-hero__role {
+    grid-column: 1 / span 6;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin: 0;
+  }
+
+  .sart-hero__statement {
+    grid-column: 1 / span 7;
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 1rem + 2vw, 2.8rem);
+    font-weight: 300;
+    line-height: var(--leading-snug);
+    letter-spacing: 0.02em;
+    color: var(--color-fg);
+    margin: var(--space-lg) 0 0;
+  }
+
+  .sart-hero__brief {
+    grid-column: 1 / span 5;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+    margin: var(--space-md) 0 0;
+    max-width: 480px;
+  }
+
+  .sart-hero__meta {
+    grid-column: 9 / -1;
+    justify-self: end;
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+  }
+
+  .sart-hero__meta-label {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-fg-faint);
+  }
+
+  .sart-hero__meta-value {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    letter-spacing: 0.05em;
+    color: var(--color-fg-muted);
+  }
+
+  /* Reserved hero-area spacer -- mannequin lives in BaseLayout as a
+     persistent fixed element and floats above this space. */
+  .sart-hero__mannequin-spacer {
+    grid-column: 5 / span 4;
+    grid-row: 1 / span 3;
+    min-height: 460px;
+  }
+
+  /* ---------------- SERVICES ---------------- */
+  .sart-services {
+    padding: var(--space-2xl) var(--gutter);
+    max-width: var(--max-width);
+    margin: 0 auto;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .sart-services__inner {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-md);
+    row-gap: var(--space-xl);
+  }
+
+  .sart-services__head {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .sart-services__eyebrow {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .sart-services__heading {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.2rem + 3vw, 4rem);
+    font-weight: var(--display-weight);
+    letter-spacing: 0.01em;
+    color: var(--color-fg);
+    max-width: 900px;
+    margin: 0;
+  }
+
+  .sart-services__list {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+  }
+
+  .sart-svc {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .sart-svc__num {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--color-fg-faint);
+  }
+
+  .sart-svc__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 1rem + 1vw, 2rem);
+    font-weight: var(--display-weight);
+    color: var(--color-fg);
+    margin: 0;
+  }
+
+  .sart-svc__desc {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+    max-width: 420px;
+    margin: var(--space-xs) 0 0;
+  }
+
+  /* ---------------- CTA ---------------- */
+  .sart-cta {
+    padding: var(--space-2xl) var(--gutter) var(--space-xl);
+    max-width: var(--max-width);
+    margin: 0 auto;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .sart-cta__inner {
+    max-width: 600px;
+  }
+
+  .sart-cta__text {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 1rem + 2vw, 2.8rem);
+    font-weight: 300;
+    line-height: var(--leading-snug);
+    color: var(--color-fg);
+    margin: 0 0 var(--space-lg);
+  }
+
+  .sart-cta__btn {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-fg);
+    border: 1px solid var(--color-accent);
+    padding: 14px 28px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .sart-cta__btn:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  .sart-cta__ig {
+    display: block;
+    margin-top: var(--space-md);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    letter-spacing: 0.05em;
+    color: var(--color-fg-faint);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .sart-cta__ig:hover {
+    color: var(--color-accent);
+  }
+
+  /* ---------------- MOBILE ---------------- */
+  @media (max-width: 768px) {
+    .sart-hero__name,
+    .sart-hero__role,
+    .sart-hero__statement,
+    .sart-hero__brief,
+    .sart-hero__meta {
+      grid-column: 1 / -1;
+      justify-self: start;
+      text-align: left;
+    }
+
+    .sart-hero__mannequin-spacer {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      min-height: 240px;
+    }
+
+    .sart-services__list {
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+    }
+  }
+</style>

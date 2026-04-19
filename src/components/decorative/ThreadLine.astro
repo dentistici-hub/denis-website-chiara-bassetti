@@ -1,0 +1,36 @@
+---
+interface Props {
+  class?: string;
+  width?: string;
+  height?: string;
+  direction?: 'left-to-right' | 'right-to-left' | 'curve-down' | 'curve-up';
+  drawOnScroll?: boolean;
+}
+
+const { class: className = '', width = '200', height = '60', direction = 'left-to-right', drawOnScroll = false } = Astro.props;
+
+const paths: Record<string, string> = {
+  'left-to-right': `M0,30 C50,10 150,50 ${width},30`,
+  'right-to-left': `M${width},30 C150,50 50,10 0,30`,
+  'curve-down': `M0,0 C40,10 60,50 ${width},${height}`,
+  'curve-up': `M0,${height} C40,50 60,10 ${width},0`,
+};
+---
+
+<svg
+  class:list={['deco deco--thread', className]}
+  width={width}
+  height={height}
+  viewBox={`0 0 ${width} ${height}`}
+  fill="none"
+  aria-hidden="true"
+  data-draw-on-scroll={drawOnScroll ? '' : undefined}
+>
+  <path
+    d={paths[direction]}
+    stroke="var(--color-thread)"
+    stroke-width="1"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

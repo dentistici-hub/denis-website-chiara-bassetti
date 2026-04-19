@@ -1,0 +1,361 @@
+---
+// ServicePanel -- fixed overlay, slides in from the right.
+// Populated and animated by src/scripts/service-panel.ts.
+---
+
+<div class="svc-panel-overlay" id="svc-panel-overlay"></div>
+
+<div class="svc-panel" id="svc-panel" aria-modal="true" role="dialog" aria-hidden="true">
+  <div class="svc-panel__info" id="svc-panel-info">
+    <button class="svc-panel__close" id="svc-panel-close" aria-label="Chiudi">&times;</button>
+    <div class="svc-panel__num" id="svc-panel-num">01.</div>
+    <h2 class="svc-panel__title" id="svc-panel-title"></h2>
+    <div class="svc-panel__divider"></div>
+    <p class="svc-panel__desc" id="svc-panel-desc"></p>
+    <div class="svc-panel__bottom">
+      <a href="#contact" class="svc-panel__cta">Scrivimi &rarr;</a>
+      <div class="svc-panel__credits" id="svc-panel-credits"></div>
+    </div>
+  </div>
+
+  <div class="svc-panel__stream" id="svc-panel-stream">
+    <div class="svc-panel__stream-content" id="svc-panel-stream-content"></div>
+  </div>
+</div>
+
+<style>
+  /* ---- Overlay ---- */
+  .svc-panel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-slow) var(--ease-in-out);
+  }
+
+  .svc-panel-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ---- Panel shell ---- */
+  .svc-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 65%;
+    height: 100vh;
+    z-index: 51;
+    display: flex;
+    flex-direction: row;
+    transform: translateX(100%);
+    pointer-events: none;
+    will-change: transform;
+    overflow: hidden;
+  }
+
+  .svc-panel.open {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* ---- Left info strip ---- */
+  .svc-panel__info {
+    width: 36%;
+    min-width: 220px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 48px 32px 40px;
+    position: relative;
+    background: var(--svc-color, var(--color-accent));
+    color: #fff;
+    overflow: hidden;
+  }
+
+  .svc-panel__close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color var(--duration-fast) var(--ease-out);
+    z-index: 1;
+  }
+
+  .svc-panel__close:hover {
+    color: #fff;
+  }
+
+  .svc-panel__num {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: var(--space-sm);
+  }
+
+  .svc-panel__title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    letter-spacing: var(--display-spacing);
+    line-height: var(--leading-snug);
+    white-space: pre-line;
+    margin: 0 0 var(--space-md);
+    color: #fff;
+  }
+
+  .svc-panel__divider {
+    width: 32px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.35);
+    margin-bottom: var(--space-md);
+    flex-shrink: 0;
+  }
+
+  .svc-panel__desc {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: rgba(255, 255, 255, 0.82);
+    flex: 1;
+    margin: 0;
+  }
+
+  .svc-panel__bottom {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+  }
+
+  .svc-panel__cta {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 10px 20px;
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
+    align-self: flex-start;
+  }
+
+  .svc-panel__cta:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+
+  .svc-panel__credits {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    line-height: var(--leading-relaxed);
+    color: rgba(255, 255, 255, 0.5);
+    white-space: pre-line;
+  }
+
+  /* ---- Right stream ---- */
+  .svc-panel__stream {
+    flex: 1;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background: var(--color-bg);
+    min-width: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-fg-faint) transparent;
+  }
+
+  .svc-panel__stream::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .svc-panel__stream::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .svc-panel__stream::-webkit-scrollbar-thumb {
+    background: var(--color-fg-faint);
+    border-radius: 2px;
+  }
+
+  .svc-panel__stream-content {
+    width: 100%;
+  }
+
+  /* ---- Stream blocks (JS-generated, need :global) ---- */
+  :global(.svc-block--media) {
+    width: 100%;
+    background: var(--color-fg-faint);
+    opacity: 0.08;
+    flex-shrink: 0;
+  }
+
+  :global(.svc-block--media:has(img)) {
+    opacity: 1;
+    background: none;
+  }
+
+  :global(.svc-block--text) {
+    padding: 28px 32px;
+  }
+
+  :global(.svc-block--text .svc-block__section-title) {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--svc-color, var(--color-accent));
+    margin: 0 0 var(--space-sm);
+  }
+
+  :global(.svc-block--text .svc-block__body) {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+    margin: 0;
+    white-space: pre-line;
+  }
+
+  :global(.svc-block--text .svc-block__body strong) {
+    color: var(--color-fg);
+    font-weight: 500;
+  }
+
+  :global(.svc-block--caption) {
+    padding: 12px 32px 16px;
+  }
+
+  :global(.svc-block--caption p) {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-fg-faint);
+    margin: 0;
+  }
+
+  :global(.svc-block--list) {
+    padding: 20px 32px;
+  }
+
+  :global(.svc-block--list .svc-block__list-label) {
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--svc-color, var(--color-accent));
+    margin: 0 0 12px;
+  }
+
+  :global(.svc-block--list ul) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  :global(.svc-block--list li) {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--color-fg-muted);
+  }
+
+  :global(.svc-block--list li:last-child) {
+    border-bottom: none;
+  }
+
+  :global(.svc-block--list li::before) {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--svc-color, var(--color-accent));
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  :global(.svc-block--divider) {
+    height: 1px;
+    background: var(--color-border);
+    margin: 8px 32px;
+  }
+
+  /* ---- Sartoria overrides ---- */
+  :global(html.sartoria) .svc-panel__stream {
+    background: #0F0F0F;
+    scrollbar-color: var(--color-accent) transparent;
+  }
+
+  :global(html.sartoria) .svc-panel__stream::-webkit-scrollbar-thumb {
+    background: var(--color-accent);
+  }
+
+  :global(html.sartoria) .svc-panel__close {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  :global(html.sartoria) .svc-panel__close:hover {
+    color: #fff;
+  }
+
+  :global(html.sartoria) .svc-panel__title {
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    font-style: normal;
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 768px) {
+    .svc-panel {
+      width: 100%;
+      flex-direction: column;
+    }
+
+    .svc-panel__info {
+      width: 100%;
+      min-width: 0;
+      padding: 48px 24px 32px;
+      flex-shrink: 0;
+    }
+
+    .svc-panel__desc {
+      flex: unset;
+    }
+
+    .svc-panel__stream {
+      flex: 1;
+      min-height: 0;
+    }
+
+    :global(.svc-block--text),
+    :global(.svc-block--list),
+    :global(.svc-block--caption) {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    :global(.svc-block--divider) {
+      margin-left: 20px;
+      margin-right: 20px;
+    }
+  }
+</style>

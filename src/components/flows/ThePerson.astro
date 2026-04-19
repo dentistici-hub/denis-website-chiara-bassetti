@@ -1,0 +1,257 @@
+---
+import OptionCard from '../elements/OptionCard.astro';
+import ThreadLine from '../decorative/ThreadLine.astro';
+import PinIcon from '../decorative/PinIcon.astro';
+
+const options = [
+  { title: 'Per te', desc: 'Acquista una consulenza per conoscerti, vederti e scoprirti.' },
+  { title: 'Per chi ami', desc: "Regalare una dose di autostima e consapevolezza \u00e8 un grande gesto d\u2019amore." },
+  { title: 'Di coppia', desc: "Un\u2019esperienza unica da condividere, a costo ridotto." },
+  { title: 'Evento di gruppo', desc: 'Da un addio al nubilato a un compleanno unico nel suo genere.' },
+];
+---
+
+<section class="flow flow--person" id="person">
+  <div class="flow__grid person__grid">
+
+    <!-- Label -->
+    <p class="person__label" data-reveal="fade-right">CHI SONO</p>
+
+    <!-- Name -->
+    <h2 class="person__name" data-split-heading="words-fade">
+      <span class="reality-text"
+        data-immagine="Chiara Bassetti"
+        data-sartoria="Chiara Bassetti">
+        Chiara Bassetti
+      </span>
+    </h2>
+
+    <!-- Portrait -->
+    <div class="person__portrait" data-clip-reveal="center">
+      <img
+        src={`${import.meta.env.BASE_URL}images/chiara-portrait.png`}
+        alt="Chiara Bassetti, Image Consultant e Makedresser"
+        width="520"
+        height="680"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+
+    <!-- Bio paragraphs -->
+    <div class="person__bio" data-scrub-text>
+      <p>
+        Image Consultant e Makedresser, specializzata in Armocromia e
+        consulenza d&rsquo;immagine personalizzata. Il mio approccio unisce
+        estetica, psicologia del colore e attenzione alla persona.
+      </p>
+      <p>
+        Ogni percorso parte dall&rsquo;ascolto: capire chi sei, cosa vuoi
+        trasmettere e come ti senti nei tuoi abiti. Non esistono regole
+        universali, solo la tua essenza da valorizzare.
+      </p>
+      <p>
+        Ho studiato per anni i colori e le forme, ma quello che ho imparato
+        di pi&ugrave; &egrave; che il vero cambiamento inizia quando qualcuno
+        si sente finalmente visto.
+      </p>
+    </div>
+
+    <!-- Options row -->
+    <div class="person__options" data-stagger-group="alternate">
+      {options.map((opt) => (
+        <OptionCard title={opt.title} desc={opt.desc} />
+      ))}
+    </div>
+
+    <!-- Contact CTA -->
+    <div class="person__cta" data-reveal="fade-up">
+      <p class="person__cta-text">
+        Prenota la tua call conoscitiva gratuita o scrivimi per qualsiasi
+        domanda. Ogni percorso inizia con una conversazione.
+      </p>
+      <a href="#contact" class="person__cta-btn">
+        <span>Scrivimi</span>
+      </a>
+    </div>
+
+    <!-- Instagram link -->
+    <div class="person__ig-link" data-reveal="fade">
+      <a href="https://instagram.com/chiarabassetti.studio" target="_blank" rel="noopener">
+        @chiarabassetti.studio
+      </a>
+    </div>
+  </div>
+
+  <!-- Decorative layer -- sparse (lower density than Flow 2) -->
+  <div class="flow__decorative">
+    <ThreadLine
+      class="deco--desktop-only"
+      direction="curve-up"
+      width="160"
+      height="60"
+      drawOnScroll
+      style="top: 12%; right: 8%;"
+      data-parallax="0.1"
+    />
+    <PinIcon
+      class="deco--desktop-only"
+      rotation={12}
+      size={28}
+      style="top: 55%; left: 3%;"
+      data-parallax="0.15"
+    />
+  </div>
+</section>
+
+<style>
+  /* ---- Flow 3: The Person ---- */
+  .flow--person {
+    padding-top: var(--space-section);
+    padding-bottom: var(--space-2xl);
+  }
+
+  .person__grid {
+    row-gap: var(--space-lg);
+    align-items: start;
+  }
+
+  /* Label */
+  .person__label {
+    grid-column: 7 / span 3;
+    font-size: var(--text-xs);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  /* Name */
+  .person__name {
+    grid-column: 5 / span 7;
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    letter-spacing: var(--display-spacing);
+    line-height: var(--leading-tight);
+    margin: 0;
+  }
+
+  /* Portrait -- overlaps left side, spans multiple rows */
+  .person__portrait {
+    grid-column: 1 / span 5;
+    grid-row: 1 / span 4;
+    z-index: var(--z-bg);
+    overflow: hidden;
+  }
+
+  .person__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Bio */
+  .person__bio {
+    grid-column: 6 / span 6;
+  }
+
+  .person__bio p {
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+    max-width: 480px;
+    margin-bottom: var(--space-md);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .person__bio p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Options row */
+  .person__options {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    justify-content: space-between;
+    margin-top: var(--space-xl);
+  }
+
+  /* Contact CTA */
+  .person__cta {
+    grid-column: 1 / span 8;
+    margin-top: var(--space-xl);
+  }
+
+  .person__cta-text {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    line-height: var(--leading-snug);
+    max-width: 540px;
+    margin-bottom: var(--space-md);
+  }
+
+  .person__cta-btn {
+    display: inline-block;
+    font-size: var(--text-sm);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-fg);
+    border-bottom: 1px solid var(--color-fg);
+    padding-bottom: var(--space-xs);
+    transition: color var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .person__cta-btn:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  /* Instagram link */
+  .person__ig-link {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-lg);
+    margin-top: var(--space-xl);
+    transition: border-color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .person__ig-link a {
+    font-size: var(--text-sm);
+    color: var(--color-fg-faint);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .person__ig-link a:hover {
+    color: var(--color-accent);
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 768px) {
+    .person__label { grid-column: 1 / -1; }
+    .person__name { grid-column: 1 / -1; }
+    .person__portrait {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      max-height: 60vh;
+    }
+    .person__bio { grid-column: 1 / -1; }
+    .person__options {
+      grid-column: 1 / -1;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .person__cta { grid-column: 1 / -1; }
+    .person__ig-link { grid-column: 1 / -1; }
+  }
+</style>

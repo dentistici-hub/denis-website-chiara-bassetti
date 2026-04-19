@@ -1,0 +1,92 @@
+---
+// Thin top bar with the dual-reality toggle. The toggle dispatches the
+// `toggle-reality` event consumed by scripts/reality.ts, which handles the
+// tile-grid transition and swaps the <html> class.
+---
+
+<header class="header">
+  <div class="header__inner">
+    <button
+      class="reality-toggle"
+      type="button"
+      aria-label="Cambia realtà"
+      id="reality-toggle"
+    >
+      <span class="reality-toggle__opt" data-opt="immagine">Immagine</span>
+      <span class="reality-toggle__sep" aria-hidden="true">/</span>
+      <span class="reality-toggle__opt" data-opt="sartoria">Sartoria</span>
+    </button>
+  </div>
+</header>
+
+<!-- Click + active-state logic lives in scripts/reality.ts as document-level
+     delegated listeners, so it survives the ClientRouter swap without
+     re-binding. No script block needed here. -->
+
+<style>
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-header);
+    padding: clamp(1rem, 0.8rem + 0.6vw, 1.5rem) var(--gutter);
+    pointer-events: none;
+  }
+
+  .header__inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .reality-toggle {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    padding: 8px 14px;
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+    cursor: pointer;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .reality-toggle:hover {
+    border-color: var(--color-fg);
+    color: var(--color-fg);
+  }
+
+  .reality-toggle__opt {
+    transition: color var(--duration-fast) var(--ease-out);
+    color: var(--color-fg-faint);
+  }
+
+  .reality-toggle__opt.is-active {
+    color: var(--color-fg);
+  }
+
+  .reality-toggle__sep {
+    color: var(--color-fg-faint);
+    opacity: 0.5;
+  }
+
+  @media (max-width: 480px) {
+    .reality-toggle {
+      font-size: 9px;
+      padding: 6px 10px;
+      letter-spacing: 0.12em;
+    }
+  }
+</style>

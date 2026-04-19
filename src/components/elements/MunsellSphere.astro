@@ -1,0 +1,619 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<div class:list={['munsell-sphere', className]} id="munsell-sphere">
+  <div class="munsell-sphere__canvas-wrap" id="sphere-canvas-wrap">
+    <canvas id="munsell-canvas"></canvas>
+  </div>
+
+  <!-- Service annotations around the sphere -->
+  <svg class="sphere-svg" id="sphere-svg" preserveAspectRatio="none"></svg>
+  <div class="sphere-ann" id="sphere-ann">
+    <div class="ann" data-ann="0" data-side="right">
+      <div class="ann__body">
+        <span class="ann__num">01</span>
+        <span class="ann__title">IDENTIT&Agrave; CROMATICA</span>
+        <span class="ann__sub">Il tuo colore, la tua essenza</span>
+      </div>
+      <div class="ann__shelf"></div>
+    </div>
+    <div class="ann" data-ann="1" data-side="right">
+      <div class="ann__body">
+        <span class="ann__num">02</span>
+        <span class="ann__title">TEST ARMOCROMIA</span>
+        <span class="ann__sub">Analisi scientifica della palette personale</span>
+      </div>
+      <div class="ann__shelf"></div>
+    </div>
+    <div class="ann" data-ann="2" data-side="right">
+      <div class="ann__body">
+        <span class="ann__num">03</span>
+        <span class="ann__title">CAPSULA DOPAMINICA</span>
+        <span class="ann__sub">Un guardaroba che ti fa stare bene</span>
+      </div>
+      <div class="ann__shelf"></div>
+    </div>
+    <div class="ann" data-ann="3" data-side="left">
+      <div class="ann__body">
+        <span class="ann__num">04</span>
+        <span class="ann__title">CONSULENZA VISO</span>
+        <span class="ann__sub">Forma, proporzioni, armonia</span>
+      </div>
+      <div class="ann__shelf"></div>
+    </div>
+    <div class="ann" data-ann="4" data-side="left">
+      <div class="ann__body">
+        <span class="ann__num">05</span>
+        <span class="ann__title">GUARDAROBA</span>
+        <span class="ann__sub">Decluttering &amp; strategia</span>
+      </div>
+      <div class="ann__shelf"></div>
+    </div>
+    <div class="ann" data-ann="5" data-side="left">
+      <div class="ann__body">
+        <span class="ann__num">06</span>
+        <span class="ann__title">RAH COLOR TEST</span>
+        <span class="ann__sub">Diagnosi cromatica avanzata</span>
+      </div>
+      <div class="ann__shelf"></div>
+    </div>
+  </div>
+
+  <!-- Color grid panel (opens on chip click) -->
+  <div class="munsell-sphere__panel" id="spectrum-panel">
+    <button class="spectrum-panel__close" id="spectrum-close" aria-label="Close spectrum">&times;</button>
+    <div class="spectrum-panel__header">
+      <div class="spectrum-panel__swatch" id="spectrum-swatch"></div>
+      <div class="spectrum-panel__title" id="spectrum-title">HUE FAMILY</div>
+    </div>
+    <div class="spectrum-panel__grid" id="spectrum-grid"></div>
+  </div>
+
+  <!-- Annotations footer (where they go when panel is open) -->
+  <div class="sphere-ann-footer" id="sphere-ann-footer"></div>
+</div>
+
+<style>
+  .munsell-sphere {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    gap: 0;
+  }
+
+  .munsell-sphere__canvas-wrap {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    transition: flex 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  #munsell-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ---- SVG connecting lines ---- */
+  .sphere-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .sphere-svg :global(line) {
+    stroke: var(--color-fg-faint, rgba(0,0,0,0.12));
+    stroke-width: 1;
+    transition: opacity 0.4s ease;
+  }
+  .munsell-sphere--open .sphere-svg :global(line) {
+    opacity: 0;
+  }
+
+  /* ---- Annotations ---- */
+  .sphere-ann {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .ann {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    pointer-events: auto;
+    cursor: default;
+    transition: opacity 0.4s ease;
+  }
+
+  .ann__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .ann__shelf {
+    width: 100%;
+    height: 1px;
+    background: var(--color-fg-faint, rgba(0,0,0,0.18));
+    margin-top: 6px;
+    position: relative;
+  }
+
+  /* No square on the shelf -- line only */
+
+  .ann__num {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: var(--color-fg-faint, rgba(0,0,0,0.25));
+  }
+
+  .ann__title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-fg, #1a1a1a);
+    white-space: nowrap;
+  }
+
+  .ann__sub {
+    font-family: var(--font-display, 'Cormorant Garamond', serif);
+    font-size: 10px;
+    font-style: italic;
+    color: var(--color-fg-muted, #999);
+    white-space: nowrap;
+  }
+
+  .ann:hover .ann__title {
+    color: var(--color-accent, #B8364B);
+  }
+
+  /* Default positions around the sphere */
+  .ann[data-ann="0"] { top: 8%;  right: 5%; }
+  .ann[data-ann="1"] { top: 28%; right: 3%; }
+  .ann[data-ann="2"] { top: 62%; right: 5%; }
+  .ann[data-ann="3"] { top: 12%; left: 3%;  }
+  .ann[data-ann="4"] { top: 44%; left: 3%;  }
+  .ann[data-ann="5"] { top: 72%; left: 3%;  }
+
+  /* When panel opens, annotations collapse to footer row */
+  .sphere-ann-footer {
+    display: none;
+  }
+
+  /* When panel opens: hide annotations entirely */
+  .munsell-sphere--open .sphere-ann {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  /* ---- Color grid panel ---- */
+  .munsell-sphere__panel {
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.4s ease 0.2s;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+  }
+
+  .munsell-sphere--open .munsell-sphere__canvas-wrap {
+    flex: 0 0 45%;
+    order: 1;
+  }
+
+  .munsell-sphere--open .munsell-sphere__panel {
+    width: 55%;
+    opacity: 1;
+    pointer-events: auto;
+    order: 2;
+  }
+
+  .spectrum-panel__close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-fg-muted);
+    cursor: pointer;
+    z-index: 2;
+    line-height: 1;
+    padding: 4px 8px;
+    transition: color 0.2s;
+  }
+  .spectrum-panel__close:hover { color: var(--color-fg); }
+
+  .spectrum-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 24px 16px;
+  }
+
+  .spectrum-panel__swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.08);
+    flex-shrink: 0;
+  }
+
+  .spectrum-panel__title {
+    font-family: var(--font-body, 'DM Sans', sans-serif);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+  }
+
+  .spectrum-panel__grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 6px;
+    align-content: start;
+  }
+
+  .spectrum-panel__grid :global(.spectrum-chip) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 4px;
+    border-radius: 4px;
+    transition: background 0.15s;
+    cursor: default;
+  }
+  .spectrum-panel__grid :global(.spectrum-chip:hover) {
+    background: rgba(0,0,0,0.04);
+  }
+
+  .spectrum-panel__grid :global(.spectrum-chip__color) {
+    width: 48px;
+    height: 48px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.06);
+    flex-shrink: 0;
+  }
+
+  .spectrum-panel__grid :global(.spectrum-chip__label) {
+    font-family: var(--font-body, 'DM Sans', sans-serif);
+    font-size: 7px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+    text-align: center;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 768px) {
+    .munsell-sphere {
+      flex-direction: column;
+    }
+
+    .ann[data-ann="0"] { top: 5%;  right: 3%; }
+    .ann[data-ann="1"] { top: 20%; right: 2%; }
+    .ann[data-ann="2"] { bottom: 8%; right: 3%; top: auto; }
+    .ann[data-ann="3"] { top: 5%; left: 2%;  }
+    .ann[data-ann="5"] { bottom: 12%; left: 2%; top: auto; }
+    .ann[data-ann="4"] { bottom: 5%; left: 2%; top: auto; }
+
+    .ann__sub { display: none; }
+    .ann__title { font-size: 7px; }
+    .ann__num { font-size: 7px; }
+
+    .munsell-sphere--open .munsell-sphere__canvas-wrap {
+      flex: 1;
+    }
+
+    :global(.munsell-sphere__panel) {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      background: #F5F0EB;
+      width: 100% !important;
+      height: 100% !important;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    :global(.munsell-sphere__panel.spectrum-panel--visible) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .spectrum-panel__grid {
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      padding: 0 16px 80px;
+    }
+
+    .spectrum-panel__header {
+      padding: 60px 16px 12px;
+    }
+
+    .spectrum-panel__close {
+      top: 16px;
+      right: 16px;
+      font-size: 28px;
+    }
+  }
+</style>
+
+<script>
+  // Re-initializes on every SPA navigation back to /. Module closure holds
+  // the current sphere state and disposes it when the user navigates away.
+  import { createMunsellSphere, startSphereAnimation, initSphereHover, initSphereClick, getHueFamily, transitionColors, burstSphere, reverseBurstSphere, disposeSphere } from '../../scripts/sphere';
+
+  type SState = ReturnType<typeof createMunsellSphere>;
+  let currentState: SState | null = null;
+  let listenersBound = false;
+  let gsapLib: any = null;
+
+  async function initSphere() {
+    const canvas = document.getElementById('munsell-canvas') as HTMLCanvasElement | null;
+
+    // Navigated away from /? Dispose any live sphere and stop.
+    if (!canvas) {
+      if (currentState) {
+        disposeSphere(currentState);
+        currentState = null;
+      }
+      return;
+    }
+
+    // Navigated back to /? Drop the stale state and rebuild for the new canvas.
+    if (currentState) {
+      disposeSphere(currentState);
+      currentState = null;
+    }
+
+    const state = createMunsellSphere(canvas);
+    currentState = state;
+
+    let scrollVelocity = 0;
+    window.addEventListener('lenis-scroll', ((e: CustomEvent) => {
+      scrollVelocity = e.detail.velocity || 0;
+    }) as EventListener);
+
+    startSphereAnimation(state, () => scrollVelocity);
+    initSphereHover(state);
+
+    // --- SVG connecting lines with drifting sphere endpoints ---
+    const svgEl = document.getElementById('sphere-svg')!;
+    const annEls = document.querySelectorAll('.ann') as NodeListOf<HTMLElement>;
+    const container = document.getElementById('munsell-sphere')!;
+
+    // Each annotation has a target point that JUMPS to a new random spot on the sphere
+    const jumpPoints = Array.from(annEls).map(() => ({ tx: 0, ty: 0 }));
+    let lastJump = 0;
+    const JUMP_INTERVAL = 400; // ms between jumps -- twitchy
+
+    function randomizePoints(rect: DOMRect) {
+      const cx = rect.width * 0.48;
+      const cy = rect.height * 0.46;
+      const sphereR = Math.min(rect.width, rect.height) * 0.28;
+
+      annEls.forEach((ann, i) => {
+        const shelfEl = ann.querySelector('.ann__shelf') as HTMLElement;
+        if (!shelfEl) return;
+        const shelfRect = shelfEl.getBoundingClientRect();
+        const side = ann.dataset.side;
+        const annIdx = ann.dataset.ann;
+
+        const sy = shelfRect.top - rect.top;
+
+        // Annotations that plunge INTO the sphere with diagonal
+        if (annIdx === '0' || annIdx === '3' || annIdx === '1') {
+          // Top annotations: dot well below shelf, deep into sphere
+          const ty = sy + 120 + Math.random() * 120;
+          const tx = cx + (Math.random() - 0.5) * sphereR * 0.6;
+          jumpPoints[i].tx = tx;
+          jumpPoints[i].ty = ty;
+        } else if (annIdx === '2' || annIdx === '5') {
+          // Bottom annotations: dot ABOVE shelf, up into sphere
+          const ty = sy - 120 - Math.random() * 120;
+          const tx = cx + (Math.random() - 0.5) * sphereR * 0.6;
+          jumpPoints[i].tx = tx;
+          jumpPoints[i].ty = ty;
+        } else {
+          // Others: jump near their shelf level on their side
+          const ty = sy + (Math.random() - 0.5) * 60;
+          let tx: number;
+          if (side === 'right') {
+            tx = cx + sphereR * (0.15 + Math.random() * 0.35);
+          } else {
+            tx = cx - sphereR * (0.15 + Math.random() * 0.35);
+          }
+          jumpPoints[i].tx = tx;
+          jumpPoints[i].ty = ty;
+        }
+      });
+    }
+
+    let lineAnimId = 0;
+
+    function drawLines() {
+      if (container.classList.contains('munsell-sphere--open')) {
+        svgEl.innerHTML = '';
+        return;
+      }
+
+      const rect = container.getBoundingClientRect();
+      const now = performance.now();
+
+      // Jump to new positions periodically
+      if (now - lastJump > JUMP_INTERVAL) {
+        randomizePoints(rect);
+        lastJump = now;
+      }
+
+      let svg = '';
+      annEls.forEach((ann, i) => {
+        const shelfEl = ann.querySelector('.ann__shelf') as HTMLElement;
+        if (!shelfEl) return;
+        const shelfRect = shelfEl.getBoundingClientRect();
+        const side = ann.dataset.side;
+
+        // Shelf endpoint (toward sphere)
+        let sx: number, sy: number;
+        if (side === 'right') {
+          sx = shelfRect.left - rect.left;
+          sy = shelfRect.top - rect.top;
+        } else {
+          sx = shelfRect.right - rect.left;
+          sy = shelfRect.top - rect.top;
+        }
+
+        const { tx, ty } = jumpPoints[i];
+        const annIdx = ann.dataset.ann;
+
+        // 0, 3: horizontal then diagonal DOWN into sphere
+        // 2, 5: horizontal then diagonal UP into sphere
+        // Others: diagonal then short horizontal to dot
+        if (annIdx === '0' || annIdx === '1' || annIdx === '3' || annIdx === '2' || annIdx === '5') {
+          const hEnd = sx + (tx - sx) * 0.5;
+          svg += `<path d="M${sx},${sy} L${hEnd},${sy} L${tx},${ty}"
+            fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1" />`;
+        } else {
+          const hLen = 35;
+          const h1x = side === 'right' ? tx + hLen : tx - hLen;
+          svg += `<path d="M${sx},${sy} L${h1x},${ty} L${tx},${ty}"
+            fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1" />`;
+        }
+
+        // Empty square at sphere endpoint
+        svg += `<rect x="${tx - 4}" y="${ty - 4}" width="9" height="9"
+          fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1" />`;
+      });
+
+      svgEl.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+      svgEl.innerHTML = svg;
+
+      lineAnimId = requestAnimationFrame(drawLines);
+    }
+
+    // Initial positions
+    requestAnimationFrame(() => {
+      const rect = container.getBoundingClientRect();
+      randomizePoints(rect);
+      lastJump = performance.now();
+      drawLines();
+    });
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(lineAnimId);
+      const rect = container.getBoundingClientRect();
+      randomizePoints(rect);
+      requestAnimationFrame(drawLines);
+    });
+
+    // --- Spectrum panel ---
+    const panel = document.getElementById('spectrum-panel')!;
+    const grid = document.getElementById('spectrum-grid')!;
+    const swatch = document.getElementById('spectrum-swatch')!;
+    const title = document.getElementById('spectrum-title')!;
+    const closeBtn = document.getElementById('spectrum-close')!;
+
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      document.body.appendChild(panel);
+    }
+
+    function openPanel(hueStep: number, clickedHex: string) {
+      const family = getHueFamily(state, hueStep);
+
+      swatch.style.backgroundColor = clickedHex;
+      const bestChip = [...family].sort((a, b) => b.chromaStep - a.chromaStep)[0];
+      const bestName = (bestChip?.pantone || 'Unknown').replace(/^\d+-\d+\s*/, '');
+      title.textContent = bestName + ' FAMILY';
+
+      grid.innerHTML = '';
+      for (const chip of family) {
+        const el = document.createElement('div');
+        el.className = 'spectrum-chip';
+        el.innerHTML = `
+          <div class="spectrum-chip__color" style="background:${chip.hex}"></div>
+          <div class="spectrum-chip__label">${chip.pantone}</div>
+        `;
+        grid.appendChild(el);
+      }
+
+      container.classList.add('munsell-sphere--open');
+      panel.classList.add('spectrum-panel--visible');
+      cancelAnimationFrame(lineAnimId);
+      svgEl.innerHTML = '';
+    }
+
+    function closePanel() {
+      container.classList.remove('munsell-sphere--open');
+      panel.classList.remove('spectrum-panel--visible');
+      requestAnimationFrame(drawLines);
+    }
+
+    initSphereClick(state, (hueStep, clickedHex) => {
+      openPanel(hueStep, clickedHex);
+    });
+
+    closeBtn.addEventListener('click', closePanel);
+
+    // Install reality-change / burst / recompose listeners ONCE on window.
+    // They always forward to `currentState`, which is re-assigned whenever
+    // we re-init on a new SPA nav to /.
+    if (!listenersBound) {
+      listenersBound = true;
+      gsapLib = (await import('gsap')).gsap;
+
+      window.addEventListener('reality-change', ((e: CustomEvent) => {
+        if (!currentState) return;
+        const isSartoria = e.detail.reality === 'sartoria';
+        transitionColors(currentState, isSartoria, gsapLib);
+      }) as EventListener);
+
+      window.addEventListener('sphere-burst', async () => {
+        if (!currentState) return;
+        await burstSphere(currentState, gsapLib, 1.5);
+        window.dispatchEvent(new CustomEvent('sphere-burst-complete'));
+      });
+
+      window.addEventListener('sphere-recompose', async () => {
+        if (!currentState) return;
+        await reverseBurstSphere(currentState, gsapLib, 1.4);
+      });
+    }
+  }
+
+  // Run on every page-load (first + each SPA nav). Astro's ClientRouter
+  // fires astro:page-load for the initial document load too, so this
+  // single listener covers both cases.
+  document.addEventListener('astro:page-load', initSphere);
+</script>

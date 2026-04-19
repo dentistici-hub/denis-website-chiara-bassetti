@@ -1,0 +1,185 @@
+---
+import '@fontsource/cormorant-garamond/300.css';
+import '@fontsource/cormorant-garamond/300-italic.css';
+import '@fontsource/cormorant-garamond/400.css';
+import '@fontsource/cormorant-garamond/400-italic.css';
+import '@fontsource-variable/dm-sans';
+import '@fontsource-variable/dm-sans/wght-italic.css';
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import MannequinFigure from '../components/elements/MannequinFigure.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  reality?: 'immagine' | 'sartoria';
+}
+
+const { title, description, reality = 'immagine' } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="it" class={reality}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:locale" content="it_IT" />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Chiara Bassetti Studio",
+      "description": "Image Consultant & Makedresser — Consulenza d'immagine e sartoria su misura",
+      "url": "https://chiarabassetti.studio",
+      "@id": "https://chiarabassetti.studio",
+      "sameAs": ["https://www.instagram.com/chiarabassetti.studio/"],
+      "knowsLanguage": "it"
+    })} />
+
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    <title>{title}</title>
+
+    <!-- SPA-style client routing so the persistent mannequin survives the
+         page swap without being torn down. -->
+    <ClientRouter />
+
+    <!-- Persistent mannequin visibility rules + default-hide during entrance.
+         The mannequin is always in the DOM (transition:persist) but is only
+         visible on the sartoria reality. During a ClientRouter-driven swap
+         her node is preserved, so no flicker. -->
+    <style is:inline>
+      /* Kill the View Transitions API's default cross-fade on root -- our
+         custom GSAP choreography handles all timing. Without this, the
+         browser overlays a 300ms fade between old and new snapshots on top
+         of our animations, causing a visible extra transition. */
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
+      }
+    </style>
+    <style is:inline>
+      .persistent-mannequin {
+        position: fixed;
+        left: 50%;
+        bottom: 10vh;
+        transform: translate3d(-50%, 0, 0);
+        height: clamp(320px, 62vh, 620px);
+        z-index: 9999;
+        pointer-events: none;
+        will-change: transform, opacity;
+      }
+      .persistent-mannequin .mannequin-figure {
+        height: 100%;
+      }
+      /* Default state: hidden on immagine, visible on sartoria. JS overrides
+         during the transition to animate her in/out explicitly. */
+      html.immagine .persistent-mannequin {
+        opacity: 0;
+      }
+      html.sartoria .persistent-mannequin {
+        opacity: 1;
+      }
+      /* Pre-hide surrounding content during a transition so it doesn't
+         flash in before the entrance choreography runs. */
+      html.reality-entering main > *,
+      html.reality-entering header,
+      html.reality-entering footer {
+        visibility: hidden;
+      }
+    </style>
+    <script is:inline>
+      if (
+        typeof sessionStorage !== 'undefined' &&
+        sessionStorage.getItem('reality-transitioning') === '1'
+      ) {
+        document.documentElement.classList.add('reality-entering');
+      }
+    </script>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Vai al contenuto</a>
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+    <div class="grain-overlay" aria-hidden="true"></div>
+    <!-- Custom cursor -->
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-circle" aria-hidden="true"></div>
+
+    <Header />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+
+    <!-- Persistent mannequin -- lives outside <main> so the ClientRouter
+         swap leaves her DOM node intact across page changes. Hidden on
+         immagine by default, revealed during the reality transition. -->
+    <div class="persistent-mannequin" transition:persist="hero-mannequin" aria-hidden={reality === 'immagine'}>
+      <MannequinFigure />
+    </div>
+
+    <script>
+      import { initReality } from '../scripts/reality';
+      import { initScroll } from '../scripts/scroll';
+      import { initCursor } from '../scripts/cursor';
+
+      let lenisInitialized = false;
+
+      // Pre-hide new content the moment a ClientRouter nav starts so nothing
+      // flashes in before the entrance choreography runs.
+      document.addEventListener('astro:before-preparation', () => {
+        document.documentElement.classList.add('reality-entering');
+      });
+
+      // astro:page-load fires on initial load AND after every SPA swap.
+      document.addEventListener('astro:page-load', async () => {
+        // Lenis + cursor are attached to window/document so they only need to
+        // initialize once; they survive the page swap.
+        if (!lenisInitialized) {
+          lenisInitialized = true;
+          const lenis = await initScroll();
+          (window as any).__lenis = lenis;
+          if (lenis) {
+            lenis.on('scroll', (e: any) => {
+              window.dispatchEvent(new CustomEvent('lenis-scroll', {
+                detail: { velocity: e.velocity, direction: e.direction, progress: e.progress }
+              }));
+            });
+          }
+          window.addEventListener('lenis-stop', () => lenis?.stop());
+          window.addEventListener('lenis-start', () => lenis?.start());
+          initCursor();
+        }
+
+        // initReality handles the reality-change dispatch, toggle binding,
+        // and (on non-first page-loads) the entrance choreography.
+        await initReality();
+      });
+
+      // Hide broken <img> tags instead of rendering the browser's default
+      // broken-image icon. Asset gaps are still flagged in the console so
+      // Denis can see what's missing.
+      document.addEventListener('error', (e) => {
+        const el = e.target as HTMLElement | null;
+        if (el && el.tagName === 'IMG') {
+          const img = el as HTMLImageElement;
+          img.style.display = 'none';
+          if (!img.dataset.errorLogged) {
+            console.warn('[chiara] missing image:', img.getAttribute('src'));
+            img.dataset.errorLogged = '1';
+          }
+        }
+      }, true);
+    </script>
+  </body>
+</html>

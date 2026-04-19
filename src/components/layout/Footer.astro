@@ -1,0 +1,92 @@
+---
+---
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <p class="footer__name">Chiara Bassetti</p>
+      <p class="footer__role">Image Consultant & Makedresser</p>
+    </div>
+    <nav class="footer__nav" aria-label="Footer">
+      <p class="footer__nav-label">Navigazione</p>
+      <a href="#hook">Servizi</a>
+      <a href="#work">Portfolio</a>
+      <a href="#person">Chi sono</a>
+    </nav>
+    <div class="footer__social">
+      <p class="footer__nav-label">Social</p>
+      <a href="https://instagram.com/chiarabassetti.studio" target="_blank" rel="noopener">Instagram</a>
+    </div>
+    <div class="footer__location">
+      <p class="footer__nav-label">Sede</p>
+      <p>Italia</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding: var(--space-2xl) var(--gutter) var(--space-xl);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+    color: var(--color-fg-muted);
+    max-width: var(--max-width);
+    margin: 0 auto;
+    transition: border-color var(--duration-slow) var(--ease-in-out),
+                color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .footer__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: var(--gutter);
+  }
+
+  .footer__name {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    color: var(--color-fg);
+    margin-bottom: var(--space-xs);
+  }
+
+  .footer__role {
+    font-size: var(--text-sm);
+    color: var(--color-fg-muted);
+  }
+
+  .footer__nav-label {
+    font-size: var(--text-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-fg-faint);
+    margin-bottom: var(--space-sm);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .footer__nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .footer__nav a,
+  .footer__social a {
+    color: var(--color-fg-muted);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .footer__nav a:hover,
+  .footer__social a:hover {
+    color: var(--color-fg);
+  }
+
+  @media (max-width: 768px) {
+    .footer__inner {
+      grid-template-columns: 1fr 1fr;
+      row-gap: var(--space-lg);
+    }
+    .footer__brand { grid-column: 1 / -1; }
+  }
+</style>

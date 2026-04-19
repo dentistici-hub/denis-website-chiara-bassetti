@@ -1,0 +1,30 @@
+{
+  "name": "website",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
+    "@fontsource-variable/dm-sans": "^5.2.8",
+    "@fontsource/cormorant-garamond": "^5.2.11",
+    "@splinetool/runtime": "^1.12.73",
+    "@vfx-js/core": "^0.8.0",
+    "astro": "^6.1.2",
+    "curtainsjs": "^8.1.6",
+    "gsap": "^3.14.2",
+    "lenis": "^1.3.21",
+    "three": "^0.183.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "typescript": "^5.9.3"
+  }
+}

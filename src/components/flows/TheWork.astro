@@ -1,0 +1,685 @@
+---
+/**
+ * Flow 2: TheWork -- sutera-style collage
+ * Large display text + inline visuals + technical annotations
+ */
+import ServiceScatter from '../elements/ServiceScatter.astro';
+---
+
+<section class="flow collage" id="work">
+  <!-- Grid overlay lines -->
+  <div class="collage__gridlines">
+    <span class="gridline gridline--v" style="left:25%"></span>
+    <span class="gridline gridline--v" style="left:50%"></span>
+    <span class="gridline gridline--v" style="left:75%"></span>
+    <span class="gridline gridline--h" style="top:33%"></span>
+    <span class="gridline gridline--h" style="top:66%"></span>
+  </div>
+
+  <!-- Cross markers -->
+  <svg class="cross-mark" width="14" height="14" style="top:33%;left:25%"><use href="#cross"/></svg>
+  <svg class="cross-mark" width="14" height="14" style="top:33%;left:75%"><use href="#cross"/></svg>
+  <svg class="cross-mark" width="14" height="14" style="top:66%;left:50%"><use href="#cross"/></svg>
+  <svg class="cross-mark" width="14" height="14" style="top:66%;left:25%"><use href="#cross"/></svg>
+  <svg class="cross-mark" width="14" height="14" style="bottom:5%;right:8%"><use href="#cross"/></svg>
+  <svg class="cross-mark" width="14" height="14" style="top:5%;left:8%"><use href="#cross"/></svg>
+
+  <!-- SVG defs -->
+  <svg style="position:absolute;width:0;height:0">
+    <defs>
+      <symbol id="cross" viewBox="0 0 16 16">
+        <line x1="8" y1="0" x2="8" y2="16" stroke="currentColor" stroke-width="1"/>
+        <line x1="0" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="1"/>
+      </symbol>
+      <symbol id="dot-square" viewBox="0 0 10 10">
+        <rect x="1" y="1" width="8" height="8" fill="currentColor" stroke="none"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ===== BLOCK 1: Main statement ===== -->
+  <div class="collage__block collage__hero-text">
+    <p class="collage__display" data-reveal="fade-up">
+      Scopro i colori
+      <span class="collage__inline-icon">
+        <svg class="spinning-wheel" viewBox="0 0 40 40" width="48" height="48">
+          <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+          <circle cx="20" cy="20" r="12" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+          <line x1="20" y1="4" x2="20" y2="36" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
+          <line x1="4" y1="20" x2="36" y2="20" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
+          <line x1="8" y1="8" x2="32" y2="32" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
+          <line x1="32" y1="8" x2="8" y2="32" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
+        </svg>
+      </span>
+      che ti appartengono e costruisco
+      <span class="collage__highlight">il tuo linguaggio visivo.</span>
+    </p>
+  </div>
+
+  <!-- Annotation card: top right -->
+  <div class="collage__card collage__card--tr" data-reveal="fade">
+    <div class="card__header">
+      <svg class="card__icon" viewBox="0 0 10 10" width="10" height="10"><use href="#dot-square"/></svg>
+      <span class="card__tag">METODO</span>
+    </div>
+    <p class="card__body">
+      Non esistono regole universali.<br/>
+      Solo la tua essenza da<br/>
+      valorizzare attraverso il colore,<br/>
+      la forma e la materia.
+    </p>
+  </div>
+
+  <!-- Inline color palette strip -->
+  <div class="collage__palette" data-reveal="fade-up">
+    <div class="palette__chip" style="background:#B8364B"></div>
+    <div class="palette__chip" style="background:#D4878F"></div>
+    <div class="palette__chip" style="background:#7A2040"></div>
+    <div class="palette__chip" style="background:#1B6B6B"></div>
+    <div class="palette__chip" style="background:#2D5A3E"></div>
+    <div class="palette__chip" style="background:#B8A060"></div>
+    <div class="palette__chip" style="background:#6B2D5A"></div>
+    <div class="palette__chip" style="background:#C45A5A"></div>
+  </div>
+
+  <!-- ===== BLOCK 2: Second statement with inline elements ===== -->
+  <div class="collage__block collage__second-text">
+    <p class="collage__display collage__display--2" data-reveal="fade-up">
+      Dall&rsquo;armocromia al guardaroba,
+      <span class="collage__inline-swatch" style="background:#D4878F"></span>
+      ogni percorso parte dall&rsquo;ascolto.
+      <span class="collage__inline-icon">
+        <svg viewBox="0 0 30 30" width="36" height="36" class="thread-icon">
+          <path d="M4 26 Q15 4, 26 20" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+          <circle cx="4" cy="26" r="2" fill="rgba(0,0,0,0.3)"/>
+          <circle cx="26" cy="20" r="2" fill="rgba(0,0,0,0.3)"/>
+        </svg>
+      </span>
+      Capire chi sei,
+      <span class="collage__highlight">cosa vuoi trasmettere.</span>
+    </p>
+  </div>
+
+  <!-- Interactive services scatter grid -->
+  <ServiceScatter />
+
+  <!-- Annotation card: bottom left -->
+  <div class="collage__card collage__card--bl" data-reveal="fade">
+    <div class="card__header">
+      <svg class="card__icon" viewBox="0 0 10 10" width="10" height="10"><use href="#dot-square"/></svg>
+      <span class="card__tag">APPROCCIO</span>
+    </div>
+    <p class="card__body">
+      RAH Colour Test + Armocromia.<br/>
+      Guida personalizzata con palette,<br/>
+      make-up, capelli, gioielli e look.
+    </p>
+  </div>
+
+  <!-- ===== BLOCK 3: Third statement ===== -->
+  <div class="collage__block collage__third-text">
+    <p class="collage__display collage__display--3" data-reveal="fade-up">
+      Il vero cambiamento inizia quando qualcuno si sente
+      <span class="collage__italic">finalmente visto.</span>
+    </p>
+  </div>
+
+  <!-- Measuring tape SVG decoration -->
+  <div class="collage__tape" data-parallax-y="-20">
+    <svg viewBox="0 0 300 20" width="300" height="20">
+      <rect x="0" y="2" width="300" height="16" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+      {Array.from({length: 30}).map((_, i) => (
+        <line x1={i * 10} y1="2" x2={i * 10} y2={i % 5 === 0 ? 12 : 8} stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+      ))}
+      {Array.from({length: 7}).map((_, i) => (
+        <text x={i * 50 + 2} y="17" fill="rgba(0,0,0,0.15)" font-size="5" font-family="DM Sans, sans-serif">{i * 5}</text>
+      ))}
+    </svg>
+  </div>
+
+  <!-- Bottom info block -->
+  <div class="collage__bottom-info">
+    <div class="collage__bottom-left" data-reveal="fade-up">
+      <span class="bottom__label">[ PERCORSI DISPONIBILI ]</span>
+      <div class="bottom__items">
+        <div class="bottom__item">
+          <svg viewBox="0 0 24 24" width="24" height="24" class="bottom__thumb">
+            <rect width="24" height="24" rx="2" fill="rgba(0,0,0,0.06)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+            <line x1="4" y1="12" x2="20" y2="12" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+            <line x1="12" y1="4" x2="12" y2="20" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+          </svg>
+          <div>
+            <span class="bottom__item-num">01.</span>
+            <span class="bottom__item-label">PER TE</span>
+          </div>
+        </div>
+        <div class="bottom__item">
+          <svg viewBox="0 0 24 24" width="24" height="24" class="bottom__thumb">
+            <rect width="24" height="24" rx="2" fill="rgba(0,0,0,0.06)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+            <circle cx="12" cy="12" r="6" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+          </svg>
+          <div>
+            <span class="bottom__item-num">02.</span>
+            <span class="bottom__item-label">PER CHI AMI</span>
+          </div>
+        </div>
+        <div class="bottom__item">
+          <svg viewBox="0 0 24 24" width="24" height="24" class="bottom__thumb">
+            <rect width="24" height="24" rx="2" fill="rgba(0,0,0,0.06)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+            <path d="M6 6 L18 18 M18 6 L6 18" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+          </svg>
+          <div>
+            <span class="bottom__item-num">03.</span>
+            <span class="bottom__item-label">DI COPPIA</span>
+          </div>
+        </div>
+        <div class="bottom__item">
+          <svg viewBox="0 0 24 24" width="24" height="24" class="bottom__thumb">
+            <rect width="24" height="24" rx="2" fill="rgba(0,0,0,0.06)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5"/>
+            <rect x="6" y="6" width="12" height="12" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+          </svg>
+          <div>
+            <span class="bottom__item-num">04.</span>
+            <span class="bottom__item-label">EVENTO DI GRUPPO</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="collage__bottom-right" data-reveal="fade">
+      <div class="collage__card collage__card--inline">
+        <div class="card__header">
+          <svg class="card__icon" viewBox="0 0 10 10" width="10" height="10"><use href="#dot-square"/></svg>
+          <span class="card__tag">ESSENZIALMENTE</span>
+        </div>
+        <p class="card__body">
+          Ogni percorso parte dall&rsquo;ascolto:<br/>
+          capire chi sei, cosa vuoi trasmettere<br/>
+          e come ti senti nei tuoi abiti.<br/><br/>
+          &Egrave; questo il significato di<br/>
+          &ldquo;immagine consapevole&rdquo;: ognuno<br/>
+          pu&ograve; esprimere la propria essenza.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact CTA + gif -->
+  <div class="collage__cta-wrap">
+    <div class="collage__cta" data-reveal="fade-up">
+      <p class="collage__cta-text">
+        Prenota la tua call conoscitiva<br/>
+        gratuita. Ogni percorso inizia<br/>
+        con una conversazione.
+      </p>
+      <a href="#contact" class="collage__cta-btn">SCRIVIMI &rarr;</a>
+      <a href="https://instagram.com/chiarabassetti.studio" target="_blank" rel="noopener" class="collage__ig">@chiarabassetti.studio</a>
+    </div>
+    <div class="collage__cta-gif" data-reveal="fade">
+      <div class="collage__cta-monogram" role="img" aria-label="Chiara Bassetti">
+        <span class="collage__cta-monogram__mark">CB</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom corner line decoration -->
+  <svg class="collage__corner-line" viewBox="0 0 200 60" width="200" height="60">
+    <path d="M0 30 L160 30 L180 50 L200 50" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+    <rect x="193" y="46" width="7" height="7" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+  </svg>
+</section>
+
+<style>
+  .collage {
+    position: relative;
+    padding: 0 var(--gutter);
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-2xl);
+  }
+
+  /* ---- Grid overlay lines ---- */
+  .collage__gridlines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .gridline {
+    position: absolute;
+    background: rgba(0,0,0,0.03);
+  }
+
+  .gridline--v {
+    width: 1px;
+    top: 0;
+    bottom: 0;
+  }
+
+  .gridline--h {
+    height: 1px;
+    left: 0;
+    right: 0;
+  }
+
+  /* ---- Cross markers ---- */
+  .cross-mark {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    color: rgba(0,0,0,0.12);
+    z-index: 1;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+
+  /* ---- Display text ---- */
+  .collage__block {
+    position: relative;
+    z-index: 2;
+  }
+
+  .collage__display {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    font-size: clamp(2.5rem, 1.5rem + 5vw, 6rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--color-fg);
+    max-width: 900px;
+    margin: 0;
+  }
+
+  .collage__display--2 {
+    font-size: clamp(1.8rem, 1rem + 4vw, 4.5rem);
+    max-width: 800px;
+    margin-top: var(--space-2xl);
+  }
+
+  .collage__display--3 {
+    font-size: clamp(2rem, 1.2rem + 4vw, 5rem);
+    max-width: 700px;
+    text-align: right;
+    margin-left: auto;
+    margin-top: var(--space-2xl);
+  }
+
+  .collage__highlight {
+    color: var(--color-accent);
+  }
+
+  .collage__italic {
+    font-style: italic;
+    color: var(--color-accent);
+  }
+
+  /* ---- Inline visual elements ---- */
+  .collage__inline-icon {
+    display: inline-flex;
+    vertical-align: middle;
+    margin: 0 0.15em;
+  }
+
+  .collage__inline-swatch {
+    display: inline-block;
+    width: 1.2em;
+    height: 1.2em;
+    vertical-align: middle;
+    margin: 0 0.1em;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .spinning-wheel {
+    animation: spin 20s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .thread-icon {
+    animation: sway 4s ease-in-out infinite;
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(8deg); }
+  }
+
+  /* ---- Annotation cards ---- */
+  .collage__card {
+    position: relative;
+    z-index: 3;
+    border: 1px solid rgba(0,0,0,0.12);
+    padding: 14px 18px;
+    max-width: 260px;
+    background: var(--color-bg, #FAF8F5);
+  }
+
+  .collage__card--tr {
+    position: absolute;
+    top: 12%;
+    right: var(--gutter);
+  }
+
+  .collage__card--bl {
+    margin-top: var(--space-xl);
+    margin-left: 0;
+  }
+
+  .collage__card--inline {
+    position: relative;
+  }
+
+  .card__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .card__icon {
+    color: var(--color-fg);
+  }
+
+  .card__tag {
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+  }
+
+  .card__body {
+    font-family: var(--font-body);
+    font-size: 9px;
+    line-height: 1.7;
+    letter-spacing: 0.02em;
+    color: var(--color-fg-muted);
+    margin: 0;
+  }
+
+  /* ---- Palette strip ---- */
+  .collage__palette {
+    display: flex;
+    gap: 4px;
+    margin-top: var(--space-lg);
+    margin-left: 10%;
+  }
+
+  .palette__chip {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+
+  .palette__chip:hover {
+    transform: scale(1.3);
+  }
+
+  /* ---- Measuring tape ---- */
+  .collage__tape {
+    margin-top: var(--space-xl);
+    opacity: 0.5;
+  }
+
+  /* ---- Bottom info block ---- */
+  .collage__bottom-info {
+    display: flex;
+    gap: var(--space-xl);
+    margin-top: var(--space-2xl);
+    align-items: flex-start;
+    position: relative;
+    z-index: 2;
+  }
+
+  .collage__bottom-left {
+    flex: 1;
+  }
+
+  .bottom__label {
+    font-family: var(--font-body);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .bottom__items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .bottom__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding-bottom: 10px;
+  }
+
+  .bottom__item-num {
+    font-family: var(--font-body);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--color-fg-faint);
+  }
+
+  .bottom__item-label {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+  }
+
+  .collage__bottom-right {
+    flex: 0 0 280px;
+  }
+
+  /* ---- CTA ---- */
+  .collage__cta-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-xl);
+    margin-top: var(--space-2xl);
+    position: relative;
+    z-index: 2;
+  }
+
+  .collage__cta {
+    flex: 1;
+  }
+
+  .collage__cta-gif {
+    flex: 0 0 auto;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .collage__cta-gif img {
+    display: block;
+    width: 280px;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /* Monogram placeholder -- stands in until a real portrait/GIF is supplied */
+  .collage__cta-monogram {
+    width: 280px;
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 25% 20%, rgba(255,255,255,0.22), transparent 55%),
+      linear-gradient(
+        135deg,
+        var(--color-palette-3, #1B6B6B) 0%,
+        var(--color-palette-6, #6B2D5A) 45%,
+        var(--color-accent, #B8364B) 100%
+      );
+    transition: background var(--duration-slow) var(--ease-in-out);
+  }
+
+  .collage__cta-monogram__mark {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 128px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #FAF8F5;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.2);
+  }
+
+  .collage__cta-text {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    line-height: var(--leading-snug);
+    margin: 0 0 var(--space-md);
+  }
+
+  .collage__cta-btn {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-fg);
+    border: 1px solid rgba(0,0,0,0.2);
+    padding: 12px 24px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .collage__cta-btn:hover {
+    background: var(--color-fg);
+    color: var(--color-bg);
+  }
+
+  .collage__ig {
+    display: block;
+    margin-top: var(--space-md);
+    font-family: var(--font-body);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--color-fg-faint);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .collage__ig:hover {
+    color: var(--color-accent);
+  }
+
+  /* ---- Corner line decoration ---- */
+  .collage__corner-line {
+    position: absolute;
+    bottom: 4%;
+    right: var(--gutter);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ---- MOBILE ---- */
+  @media (max-width: 768px) {
+    .collage__gridlines,
+    .cross-mark,
+    .collage__card--tr,
+    .collage__tape,
+    .collage__corner-line {
+      display: none;
+    }
+
+    .collage__display {
+      font-size: clamp(1.8rem, 1.2rem + 3vw, 3rem);
+    }
+
+    .collage__display--2 {
+      font-size: clamp(1.4rem, 1rem + 2.5vw, 2.5rem);
+    }
+
+    .collage__display--3 {
+      font-size: clamp(1.5rem, 1rem + 2.5vw, 2.5rem);
+      text-align: left;
+      margin-left: 0;
+    }
+
+    .collage__palette {
+      margin-left: 0;
+    }
+
+    .collage__bottom-info {
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .collage__bottom-right {
+      flex: 1;
+      width: 100%;
+    }
+
+    .collage__cta-wrap {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .collage__cta-gif img {
+      width: 200px;
+    }
+  }
+
+</style>
+
+<script data-astro-rerun>
+  // Palette chips flip to a random color while the cursor sits on them;
+  // restore to their original hex on leave so the strip still reads as
+  // the curated brand palette at rest.
+  const palette = document.querySelector('.collage__palette');
+  if (palette) {
+    const chips = palette.querySelectorAll<HTMLDivElement>('.palette__chip');
+    const pool = [
+      '#B8364B', '#D4878F', '#7A2040', '#1B6B6B', '#2D5A3E', '#B8A060',
+      '#6B2D5A', '#C45A5A', '#E8A87C', '#3D5A80', '#98C1D9', '#EE6C4D',
+      '#C38D9E', '#41436A', '#984447', '#BFA888', '#DDA448', '#5B5EA6',
+      '#A63D40', '#E9B872', '#4F6367', '#7A9E7E', '#B08BBB', '#264653',
+    ];
+
+    chips.forEach((chip) => {
+      const original = chip.style.background;
+      let lastChange = 0;
+
+      chip.addEventListener('mousemove', () => {
+        const now = performance.now();
+        if (now - lastChange < 120) return; // throttle so it doesn't strobe
+        lastChange = now;
+        let next = pool[Math.floor(Math.random() * pool.length)];
+        if (next === chip.style.background) {
+          // avoid picking the same one twice in a row
+          next = pool[(pool.indexOf(next) + 1) % pool.length];
+        }
+        chip.style.background = next;
+      });
+
+      chip.addEventListener('mouseleave', () => {
+        chip.style.background = original;
+      });
+    });
+  }
+</script>

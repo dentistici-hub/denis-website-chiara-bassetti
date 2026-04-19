@@ -1,0 +1,23 @@
+---
+interface Props {
+  class?: string;
+  rotation?: number;
+  size?: number;
+}
+
+const { class: className = '', rotation = 0, size = 32 } = Astro.props;
+---
+
+<svg
+  class:list={['deco deco--pin', className]}
+  width={size}
+  height={size}
+  viewBox="0 0 32 32"
+  aria-hidden="true"
+  style={rotation ? `transform: rotate(${rotation}deg)` : undefined}
+  data-cursor-react
+>
+  <line x1="16" y1="2" x2="16" y2="24" stroke="var(--color-pin)" stroke-width="1.2" stroke-linecap="round" />
+  <circle cx="16" cy="2" r="3" fill="var(--color-pin)" />
+  <line x1="14" y1="24" x2="18" y2="24" stroke="var(--color-pin)" stroke-width="0.8" />
+</svg>

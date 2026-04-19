@@ -1,0 +1,28 @@
+---
+interface Props {
+  class?: string;
+  path: string;
+  width?: string;
+  height?: string;
+}
+
+const { class: className = '', path, width = '300', height = '200' } = Astro.props;
+---
+
+<svg
+  class:list={['deco deco--needle-thread', className]}
+  width={width}
+  height={height}
+  viewBox={`0 0 ${width} ${height}`}
+  fill="none"
+  aria-hidden="true"
+  data-draw-on-scroll
+>
+  <path
+    d={path}
+    stroke="var(--color-thread)"
+    stroke-width="0.8"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

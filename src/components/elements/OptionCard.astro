@@ -1,0 +1,38 @@
+---
+interface Props {
+  title: string;
+  desc: string;
+  class?: string;
+}
+
+const { title, desc, class: className = '' } = Astro.props;
+---
+
+<div class:list={['option-card', className]} data-reveal="fade-up">
+  <h3 class="option-card__title">{title}</h3>
+  <p class="option-card__desc">{desc}</p>
+</div>
+
+<style>
+  .option-card {
+    padding: var(--space-md);
+    border-top: 1px solid var(--color-border);
+    max-width: 260px;
+    transition: border-color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .option-card__title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    margin-bottom: var(--space-xs);
+  }
+
+  .option-card__desc {
+    font-size: var(--text-sm);
+    color: var(--color-fg-muted);
+    line-height: var(--leading-relaxed);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+</style>

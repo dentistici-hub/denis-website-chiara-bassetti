@@ -1,0 +1,16 @@
+---
+interface Props {
+  class?: string;
+  color: string;
+  width?: number;
+  height?: number;
+}
+
+const { class: className = '', color, width = 40, height = 40 } = Astro.props;
+---
+
+<div
+  class:list={['deco deco--swatch', className]}
+  aria-hidden="true"
+  style={`width: ${width}px; height: ${height}px; background-color: ${color}; border: 1px solid var(--color-swatch-border); border-radius: 3px;`}
+></div>

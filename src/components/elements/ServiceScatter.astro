@@ -1,0 +1,203 @@
+---
+import ServicePanel from './ServicePanel.astro';
+---
+
+<div class="svc-scatter" id="svc-scatter">
+  <!-- Grid lines -->
+  <div class="svc-scatter__lines">
+    <span class="svc-scatter__line svc-scatter__line--v" style="left:33%"></span>
+    <span class="svc-scatter__line svc-scatter__line--v" style="left:66%"></span>
+    <span class="svc-scatter__line svc-scatter__line--h" style="top:38%"></span>
+    <span class="svc-scatter__line svc-scatter__line--h" style="top:70%"></span>
+  </div>
+  <!-- Cross markers at intersections -->
+  <div class="svc-scatter__cross" style="top:38%;left:33%"></div>
+  <div class="svc-scatter__cross" style="top:38%;left:66%"></div>
+  <div class="svc-scatter__cross" style="top:70%;left:33%"></div>
+  <div class="svc-scatter__cross" style="top:70%;left:66%"></div>
+  <!-- JS renders items here -->
+  <div class="svc-scatter__items" id="svc-scatter-items"></div>
+</div>
+<ServicePanel />
+
+<script data-astro-rerun>
+  import { initServiceScatter } from '../../scripts/service-scatter';
+  initServiceScatter();
+</script>
+
+<style>
+  .svc-scatter {
+    position: relative;
+    width: 100%;
+    height: clamp(450px, 55vh, 600px);
+    margin-top: var(--space-2xl);
+  }
+
+  /* ---- Grid lines ---- */
+  .svc-scatter__lines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .svc-scatter__line {
+    position: absolute;
+    background: var(--color-border);
+  }
+
+  .svc-scatter__line--v {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+  }
+
+  .svc-scatter__line--h {
+    left: 0;
+    right: 0;
+    height: 1px;
+  }
+
+  /* ---- Cross markers ---- */
+  .svc-scatter__cross {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .svc-scatter__cross::before,
+  .svc-scatter__cross::after {
+    content: '';
+    position: absolute;
+    background: var(--color-fg-faint);
+    opacity: 0.4;
+  }
+
+  .svc-scatter__cross::before {
+    /* horizontal bar */
+    width: 14px;
+    height: 1px;
+    top: 0;
+    left: -7px;
+  }
+
+  .svc-scatter__cross::after {
+    /* vertical bar */
+    width: 1px;
+    height: 14px;
+    left: 0;
+    top: -7px;
+  }
+
+  /* ---- Items container ---- */
+  .svc-scatter__items {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* ---- Panel-open blur state ---- */
+  .svc-scatter.panel-open {
+    filter: blur(3px);
+    opacity: 0.2;
+    pointer-events: none;
+    transition: filter 0.5s, opacity 0.5s;
+  }
+
+  /* ---- Scatter items (JS-generated, need :global) ---- */
+  :global(.scatter-item) {
+    position: absolute;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :global(.scatter-item:hover) {
+    transform: scale(1.06);
+  }
+
+  :global(.scatter-item:hover .scatter-item__num) {
+    color: var(--color-accent);
+  }
+
+  :global(.scatter-item:hover .scatter-item__label) {
+    color: var(--color-accent);
+  }
+
+  :global(.scatter-item__num) {
+    font-family: var(--font-body);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--color-fg-faint);
+    margin: 0;
+    transition: color 0.3s;
+  }
+
+  :global(.scatter-item__canvas) {
+    border-radius: 3px;
+    display: block;
+  }
+
+  :global(.scatter-item__img) {
+    border-radius: 3px;
+    display: block;
+    object-fit: cover;
+  }
+
+  :global(.scatter-item__spline) {
+    border-radius: 3px;
+    display: block;
+    pointer-events: none;
+  }
+
+  :global(.scatter-item__label) {
+    font-family: var(--font-body);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-fg-faint);
+    margin: 0;
+    transition: color 0.3s;
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 768px) {
+    .svc-scatter {
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .svc-scatter__lines,
+    .svc-scatter__cross {
+      display: none;
+    }
+
+    .svc-scatter__items {
+      position: relative;
+      inset: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    :global(.scatter-item) {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    :global(.scatter-item__canvas) {
+      width: 70px !important;
+      height: 70px !important;
+    }
+  }
+</style>

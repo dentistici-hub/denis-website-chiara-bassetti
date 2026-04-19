@@ -1,0 +1,158 @@
+---
+import MunsellSphere from '../elements/MunsellSphere.astro';
+import ThreadLine from '../decorative/ThreadLine.astro';
+import PinIcon from '../decorative/PinIcon.astro';
+import FabricSwatch from '../decorative/FabricSwatch.astro';
+import PantoneChip from '../decorative/PantoneChip.astro';
+---
+
+<div class="flow flow--hook" id="hook">
+  <div class="flow__grid hook__grid">
+    <!-- Name reveal -->
+    <div class="hook__name" data-split-heading="chars-rise">
+      <span class="reality-text" data-immagine="Chiara Bassetti" data-sartoria="Chiara Bassetti">Chiara Bassetti</span>
+    </div>
+
+    <!-- Role label -->
+    <div class="hook__role" data-reveal="fade-right" data-reveal-delay="0.4">
+      <span class="reality-text"
+        data-immagine="IMAGE CONSULTANT & MAKEDRESSER"
+        data-sartoria="SARTORIA SU MISURA">
+        IMAGE CONSULTANT & MAKEDRESSER
+      </span>
+    </div>
+
+    <!-- Munsell Sphere -->
+    <div class="hook__sphere">
+      <MunsellSphere />
+    </div>
+
+    <!-- everything below sphere moved to TheWork collage -->
+  </div>
+
+  <!-- Decorative layer -->
+  <div class="flow__decorative">
+    <ThreadLine class="deco--desktop-only" direction="curve-down" width="180" height="80" drawOnScroll style="top: 15%; left: 5%;" data-parallax="0.1" />
+    <PinIcon class="deco--desktop-only" rotation={-15} style="top: 18%; left: 28%;" data-parallax="0.15" />
+    <FabricSwatch class="deco--desktop-only" color="var(--color-accent-tertiary, var(--color-accent))" width={30} height={30} style="top: 60%; left: 8%;" data-parallax="0.2" />
+    <FabricSwatch class="deco--desktop-only" color="var(--color-palette-3, var(--color-accent))" width={22} height={22} style="top: 45%; right: 12%;" data-parallax="0.25" />
+    <PantoneChip class="deco--desktop-only" color="var(--color-palette-1, var(--color-accent))" label="CB-01" style="bottom: 25%; left: 3%;" data-parallax="0.1" />
+  </div>
+</div>
+
+<style>
+  .flow--hook {
+    min-height: auto;
+    padding-bottom: var(--space-lg);
+  }
+
+  .hook__grid {
+    min-height: 100vh;
+    align-content: start;
+    padding-top: calc(80px + var(--space-xl));
+    row-gap: var(--space-lg);
+  }
+
+  .hook__name {
+    grid-column: 1 / span 7;
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    letter-spacing: var(--display-spacing);
+    line-height: var(--leading-tight);
+    z-index: var(--z-content);
+  }
+
+  .hook__role {
+    grid-column: 1 / span 4;
+    font-size: var(--text-xs);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .hook__sphere {
+    grid-column: 1 / -1;
+    height: 90vh;
+    min-height: 550px;
+    z-index: var(--z-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -8vh;
+  }
+
+  .hook__philosophy {
+    grid-column: 1 / -1;
+    position: relative;
+    min-height: 150vh;
+  }
+
+  .hook__philosophy p {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--display-weight);
+    font-style: var(--display-style);
+    line-height: var(--leading-snug);
+    max-width: 600px;
+    color: var(--color-accent);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .hook__phil-1 { margin-left: 0; margin-bottom: var(--space-2xl); }
+  .hook__phil-2 { margin-left: auto; margin-right: 0; margin-bottom: var(--space-2xl); text-align: right; }
+  .hook__phil-3 { margin-left: 10%; margin-bottom: var(--space-xl); }
+
+  .hook__services-strip {
+    grid-column: 1 / -1;
+    font-size: var(--text-sm);
+    color: var(--color-fg-faint);
+    letter-spacing: 0.05em;
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .hook__ig {
+    grid-column: 10 / -1;
+    font-size: var(--text-sm);
+    color: var(--color-fg-faint);
+    text-decoration: none;
+    justify-self: end;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+  .hook__ig:hover { color: var(--color-accent); }
+
+  .hook__scroll-indicator {
+    grid-column: 6 / span 2;
+    justify-self: center;
+    text-align: center;
+    font-size: var(--text-xs);
+    letter-spacing: 0.2em;
+    color: var(--color-fg-faint);
+    transition: color var(--duration-slow) var(--ease-in-out);
+  }
+
+  .hook__scroll-line {
+    width: 1px;
+    height: 40px;
+    background: var(--color-fg-faint);
+    margin: var(--space-sm) auto 0;
+    animation: scroll-pulse 2s ease-in-out infinite;
+    transition: background-color var(--duration-slow) var(--ease-in-out);
+  }
+
+  @keyframes scroll-pulse {
+    0%, 100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.5); opacity: 0.3; }
+  }
+
+  @media (max-width: 768px) {
+    .hook__name { grid-column: 1 / -1; }
+    .hook__role { grid-column: 1 / -1; }
+    .hook__sphere { grid-column: 1 / -1; grid-row: auto; height: 90vh; min-height: 500px; margin-top: 0; }
+    .hook__services-strip { grid-column: 1 / -1; }
+    .hook__ig { grid-column: 1 / -1; justify-self: start; }
+    .hook__scroll-indicator { grid-column: 1 / -1; }
+  }
+</style>
