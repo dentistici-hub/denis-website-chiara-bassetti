@@ -607,6 +607,14 @@ import ServiceScatter from '../elements/ServiceScatter.astro';
       display: none;
     }
 
+    /* Tighten the gap between sphere and the first collage statement --
+       the section was sitting with ~10vh of dead space above "Scopro i
+       colori" on phones. */
+    .collage {
+      padding-top: var(--space-sm);
+      padding-bottom: var(--space-xl);
+    }
+
     .collage__display {
       font-size: clamp(1.8rem, 1.2rem + 3vw, 3rem);
     }
