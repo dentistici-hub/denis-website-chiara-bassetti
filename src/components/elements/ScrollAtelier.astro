@@ -92,7 +92,7 @@ const HOTSPOTS = [
   </div>
 </section>
 
-<script define:vars={{ FRAME_COUNT, BASE, START_FRAME, END_FRAME }}>
+<script define:vars={{ FRAME_COUNT, BASE, START_FRAME, END_FRAME, ANIMATION_END }}>
   const FRAME_DIR = `${BASE}scenes/atelier-frames/`;
   // Loader hides only when ALL frames are loaded AND at least MIN_LOADER_TIME
   // has elapsed. The 2s floor keeps the "Benvenuti nell'atelier" greeting on
@@ -243,10 +243,6 @@ const HOTSPOTS = [
     const loadingDone = loadedCount >= FRAME_COUNT;
     if (!loadingDone || elapsed < MIN_LOADER_TIME) return;
 
-    // All frames loaded AND min time elapsed. Force a fresh draw with the
-    // right frame at the current scroll position BEFORE hiding the loader --
-    // this eliminates the "empty canvas until first scroll" bug where tick
-    // had drawn with stale canvas dimensions or before a key frame was ready.
     sizeCanvas();
     currentFrame = -1;
     tick();
@@ -288,34 +284,32 @@ const HOTSPOTS = [
 
     for (const i of order) {
       const img = new Image();
-      // CRITICAL: attach onload/onerror BEFORE setting src. When the image
-      // is already in the browser HTTP cache (very likely here since we
-      // prefetch on entry from the immagine page), the load event can fire
-      // synchronously once src is set. If the handler isn't attached yet,
-      // we miss the event entirely, loadedCount never reaches FRAME_COUNT,
-      // and the loader stays on forever.
-      img.onload = () => {
+      let counted = false;
+      // Idempotent load handler -- counts at most once per image regardless
+      // of whether real onload fires, synthetic dispatch fires, or both.
+      // Cached images from the prefetch can fire load synchronously once
+      // src is set, racing our handler attachment.
+      const onLoad = () => {
+        if (counted) return;
+        counted = true;
         loadedCount++;
         updateLoader();
         tick();
         maybeHideLoader();
       };
-      img.onerror = () => {
+      const onErr = () => {
+        if (counted) return;
+        counted = true;
         loadedCount++;
         updateLoader();
         maybeHideLoader();
       };
+      img.onload = onLoad;
+      img.onerror = onErr;
       img.decoding = 'async';
       img.src = `${FRAME_DIR}${pad4(i + 1)}.jpg`;
-      // Defensive: if the image is ALREADY complete by the time we register
-      // it (cache hit so fast the event fired before control returned here),
-      // manually fire the onload callback. Note: the script runs as plain
-      // JS (define:vars scripts bypass TypeScript compilation) -- no TS
-      // syntax like `as any` allowed here.
       if (img.complete && img.naturalWidth > 0) {
-        Promise.resolve().then(() => {
-          if (img.onload) img.onload(new Event('load'));
-        });
+        Promise.resolve().then(onLoad);
       }
       images[i] = img;
     }
@@ -331,10 +325,7 @@ const HOTSPOTS = [
     if (!section || !canvas) return;
 
     loaderStartTime = performance.now();
-    // Schedule a deferred hide check at the minimum loader time. If loading
-    // finished before this, we hide at exactly the 2s mark. If loading is
-    // still going, the last onload call wins.
-    setTimeout(() => { maybeHideLoader(); }, MIN_LOADER_TIME + 50);
+    setTimeout(maybeHideLoader, MIN_LOADER_TIME + 50);
 
     ctx = canvas.getContext('2d');
     sizeCanvas();
