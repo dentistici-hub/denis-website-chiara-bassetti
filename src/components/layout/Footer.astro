@@ -12,13 +12,15 @@
       <a href="#work">Portfolio</a>
       <a href="#person">Chi sono</a>
     </nav>
-    <div class="footer__social">
-      <p class="footer__nav-label">Social</p>
-      <a href="https://instagram.com/chiarabassetti.studio" target="_blank" rel="noopener">Instagram</a>
-    </div>
-    <div class="footer__location">
-      <p class="footer__nav-label">Sede</p>
-      <p>Italia</p>
+    <div class="footer__right">
+      <div class="footer__social">
+        <p class="footer__nav-label">Social</p>
+        <a href="https://instagram.com/chiarabassetti.studio" target="_blank" rel="noopener">Instagram</a>
+      </div>
+      <div class="footer__location">
+        <p class="footer__nav-label">Sede</p>
+        <p>Italia</p>
+      </div>
     </div>
   </div>
 </footer>
@@ -39,6 +41,13 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: var(--gutter);
+  }
+
+  /* Wrapper is transparent to the desktop grid (display: contents) so
+     social + location stay as siblings in the 4-col layout. On mobile the
+     media query below collapses it into a flex stack. */
+  .footer__right {
+    display: contents;
   }
 
   .footer__name {
@@ -83,10 +92,20 @@
   }
 
   @media (max-width: 768px) {
+    .footer {
+      padding-top: var(--space-md);
+    }
     .footer__inner {
       grid-template-columns: 1fr 1fr;
       row-gap: var(--space-lg);
     }
     .footer__brand { grid-column: 1 / -1; }
+    /* Stack social + sede in the right column with a tight gap so sede
+       sits just under Instagram, not flushed to the bottom of the nav. */
+    .footer__right {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
   }
 </style>

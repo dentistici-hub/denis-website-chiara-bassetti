@@ -248,6 +248,8 @@ export interface SphereState {
   time: number;
   burstProgress: number; // 0 = normal tree, 1 = fully scattered (reality transition)
   chipSpreadSeeds: Float32Array; // per-chip random outward/upward offsets for the burst
+  colorTween: any; // active gsap tween for instanceColor (killed on re-transition)
+  fogTween: any;   // active gsap tween for scene.fog.color
 }
 
 export function createMunsellSphere(canvas: HTMLCanvasElement): SphereState {
@@ -384,6 +386,8 @@ export function createMunsellSphere(canvas: HTMLCanvasElement): SphereState {
       }
       return seeds;
     })(),
+    colorTween: null,
+    fogTween: null,
   };
 }
 
@@ -660,30 +664,56 @@ export function transitionColors(state: SphereState, toDesaturated: boolean, gsa
   const { mesh, warmColors, darkColors, instanceCount, scene } = state;
   if (!mesh.instanceColor) return;
 
-  const src = toDesaturated ? warmColors : darkColors;
   const dst = toDesaturated ? darkColors : warmColors;
   const arr = mesh.instanceColor.array as Float32Array;
 
-  gsap.to({ progress: 0 }, {
-    progress: 1,
-    duration: 1.5,
-    ease: 'power2.inOut',
-    onUpdate: function (this: any) {
-      const p = this.targets()[0].progress;
-      for (let i = 0; i < instanceCount * 3; i++) {
-        arr[i] = src[i] + (dst[i] - src[i]) * p;
-      }
-      mesh.instanceColor.needsUpdate = true;
-    },
-  });
+  // Snapshot the current instanceColor state and tween from THERE to dst.
+  // The old code used a fixed `src` regardless of what arr actually held,
+  // which on initial load / SPA re-init forced a visible flash (arr was
+  // already at dst, so tween jumped to src at p=0 before animating back).
+  // On mobile this flash could land on an oversaturated intermediate if
+  // the tween was interrupted -- causing the "extremely saturated" glitch.
+  const srcSnap = new Float32Array(arr);
 
-  // Fog color follows the page bg so far chips always fade to the right tone
+  // If we're already within epsilon of the target, there's nothing to animate.
+  let atTarget = true;
+  for (let i = 0; i < arr.length && atTarget; i++) {
+    if (Math.abs(arr[i] - dst[i]) > 0.005) atTarget = false;
+  }
+
+  if (!atTarget) {
+    // Kill any still-running colour tween from a previous reality change
+    // so we can't get two onUpdate callbacks fighting over the same array.
+    if (state.colorTween) state.colorTween.kill();
+
+    state.colorTween = gsap.to({ progress: 0 }, {
+      progress: 1,
+      duration: 1.5,
+      ease: 'power2.inOut',
+      onUpdate: function (this: any) {
+        const p = this.targets()[0].progress;
+        for (let i = 0; i < instanceCount * 3; i++) {
+          arr[i] = srcSnap[i] + (dst[i] - srcSnap[i]) * p;
+        }
+        mesh.instanceColor!.needsUpdate = true;
+      },
+      onComplete: () => { state.colorTween = null; },
+    });
+  }
+
+  // Fog color follows the page bg so far chips always fade to the right tone.
   if (scene.fog && (scene.fog as THREE.Fog).color) {
     const fogColor = (scene.fog as THREE.Fog).color;
     const target = toDesaturated
       ? { r: 0.7373, g: 0.5686, b: 0.5059 }    // sartoria #BC9181 terracotta plaster
       : { r: 0.9804, g: 0.9725, b: 0.9608 };   // immagine #FAF8F5
-    gsap.to(fogColor, { ...target, duration: 1.5, ease: 'power2.inOut' });
+    if (state.fogTween) state.fogTween.kill();
+    state.fogTween = gsap.to(fogColor, {
+      ...target,
+      duration: 1.5,
+      ease: 'power2.inOut',
+      onComplete: () => { state.fogTween = null; },
+    });
   }
 }
 
@@ -756,6 +786,10 @@ export function burstSphere(
 export function disposeSphere(state: SphereState): void {
   state.disposed = true;
   cancelAnimationFrame(state.animationId);
+  // Kill any live reality-transition tweens so they can't keep mutating the
+  // disposed state's instanceColor / fog.color after this returns.
+  state.colorTween?.kill();
+  state.fogTween?.kill();
   state.controls.dispose();
   state.mesh.geometry.dispose();
   (state.mesh.material as THREE.Material).dispose();

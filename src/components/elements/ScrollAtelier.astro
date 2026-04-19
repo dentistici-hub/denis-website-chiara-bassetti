@@ -197,18 +197,22 @@ const HOTSPOTS = [
   }
 
   function updateHotspots(progress) {
+    // Fade in during the first 15% of the hotspot's range, then STAY visible
+    // even if the user scrolls past the atelier section. They only fade out
+    // again when the user scrolls back UP past the `from` threshold -- the
+    // hero "re-explodes" on reverse scroll.
     for (const h of hotspots) {
-      const active = progress >= h.from && progress <= h.to;
-      h.el.classList.toggle('is-visible', active);
-      // Fade in within first 15% of range, fade out within last 15%
       const range = h.to - h.from;
-      const local = (progress - h.from) / range;
-      let opacity = 0;
-      if (active) {
-        if (local < 0.15) opacity = local / 0.15;
-        else if (local > 0.85) opacity = (1 - local) / 0.15;
-        else opacity = 1;
+      const fadeWindow = range * 0.15;
+      let opacity;
+      if (progress < h.from) {
+        opacity = 0;
+      } else if (progress < h.from + fadeWindow) {
+        opacity = (progress - h.from) / fadeWindow;
+      } else {
+        opacity = 1;
       }
+      h.el.classList.toggle('is-visible', opacity > 0.01);
       h.el.style.opacity = String(opacity);
     }
   }
