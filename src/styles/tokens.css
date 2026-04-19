@@ -83,15 +83,17 @@ html.immagine, html:not(.sartoria) {
   --color-decorative-faint: rgba(184, 54, 75, 0.08);
 }
 
-/* ---- REALITY: SARTORIA ---- */
+/* ---- REALITY: SARTORIA ----
+   Bg now matches the atelier's terracotta-rose plaster walls so the
+   scroll-scrubbed hero bleeds into the page content without a seam. */
 html.sartoria {
-  --color-bg: #0A0A0A;
-  --color-fg: #F0EDE8;
-  --color-fg-muted: #8C8580;
-  --color-fg-faint: #5A5550;
-  --color-accent: #C9A96E;
-  --color-accent-secondary: #8B7355;
-  --color-border: rgba(240, 237, 232, 0.1);
+  --color-bg: #BC9181;
+  --color-fg: #F8F0E8;
+  --color-fg-muted: #EDDCD0;
+  --color-fg-faint: rgba(248, 240, 232, 0.55);
+  --color-accent: #F8E8D0;
+  --color-accent-secondary: #8B5A4C;
+  --color-border: rgba(248, 240, 232, 0.18);
 
   --font-display: 'DM Sans Variable', 'DM Sans', 'Helvetica Neue', sans-serif;
   --font-body: 'DM Sans Variable', 'DM Sans', 'Helvetica Neue', sans-serif;

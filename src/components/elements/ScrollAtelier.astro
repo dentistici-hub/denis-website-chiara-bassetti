@@ -24,19 +24,41 @@ const { class: className = '' } = Astro.props;
 const FRAME_COUNT = 193;
 const BASE = import.meta.env.BASE_URL;
 
-// Hotspots -- each is clickable within a scroll-progress range (0..1).
-// Position in screen space as percentages. Tune after first visual check.
+// The scroll animation plays in REVERSE (scroll 0 = last frame, scroll 1 =
+// some earlier frame). END_FRAME is where the scrub STOPS -- we don't go
+// all the way to frame 1, we stop at the composition that shows the
+// clickable atelier elements clearly. User lands on the animation end and
+// holds there while they interact with the hotspots.
+// Tune END_FRAME after visually checking frames to find the sewing-machine
+// / corkboard / armchair composition Denis referenced.
+const START_FRAME = FRAME_COUNT; // 193 -- close-up / chaos end
+const END_FRAME = 90;            // target "hotspot-ready" composition
+
+// Hotspots -- visible from 0.5 progress onward so user reaches the
+// interactive zone about halfway through scroll.
 const HOTSPOTS = [
-  { id: 'abiti', service: 'Abito su misura', from: 0.65, to: 0.95, x: 22, y: 52 },
-  { id: 'modifiche', service: 'Modifiche sartoriali', from: 0.7, to: 0.95, x: 42, y: 58 },
-  { id: 'tessuti', service: 'Consulenza tessuti', from: 0.7, to: 0.95, x: 60, y: 62 },
-  { id: 'restauro', service: 'Restauro capi', from: 0.65, to: 0.95, x: 78, y: 56 },
+  { id: 'abiti',     service: 'Abito su misura',     from: 0.55, to: 1.0, x: 22, y: 52 },
+  { id: 'modifiche', service: 'Modifiche sartoriali', from: 0.55, to: 1.0, x: 42, y: 58 },
+  { id: 'tessuti',   service: 'Consulenza tessuti',   from: 0.55, to: 1.0, x: 60, y: 62 },
+  { id: 'restauro',  service: 'Restauro capi',        from: 0.55, to: 1.0, x: 78, y: 56 },
 ];
 ---
 
 <section class:list={['atelier-hero', className]} data-atelier-hero>
   <div class="atelier-hero__sticky">
     <canvas class="atelier-hero__canvas" data-atelier-canvas></canvas>
+
+    <!-- Loading veil -- covers the canvas until a usable chunk of frames
+         have downloaded. 30MB is a lot; without this overlay the page
+         looks frozen. -->
+    <div class="atelier-loader" data-atelier-loader>
+      <div class="atelier-loader__ring"></div>
+      <div class="atelier-loader__label">Benvenuti nell'atelier</div>
+      <div class="atelier-loader__progress">
+        <span class="atelier-loader__bar" data-atelier-loader-bar></span>
+      </div>
+      <div class="atelier-loader__count" data-atelier-loader-count>0%</div>
+    </div>
 
     <!-- Hotspot overlay layer. Each hotspot is a button positioned in
          percentage units; JS toggles visibility based on scroll range. -->
@@ -63,17 +85,24 @@ const HOTSPOTS = [
   </div>
 </section>
 
-<script define:vars={{ FRAME_COUNT, BASE }}>
+<script define:vars={{ FRAME_COUNT, BASE, START_FRAME, END_FRAME }}>
   const FRAME_DIR = `${BASE}scenes/atelier-frames/`;
-  const SECTION_HEIGHT_MULT = 4; // section is 4x viewport height -> 3x scroll = full scrub
+  // Minimum frames loaded before we can safely start showing the scene
+  // and hide the loader. Loader fades at 30% loaded (58 frames) which is
+  // enough to cover the first chunk of scroll without gaps.
+  const MIN_PLAYABLE = Math.ceil(FRAME_COUNT * 0.3);
 
   let images = [];
   let ctx = null;
   let canvas = null;
   let section = null;
   let progressEl = null;
+  let loaderEl = null;
+  let loaderBar = null;
+  let loaderCount = null;
   let hotspots = [];
   let loadedCount = 0;
+  let loaderHidden = false;
   let currentFrame = -1;
   let rafPending = false;
   let scrollListener = null;
@@ -148,14 +177,17 @@ const HOTSPOTS = [
   function tick() {
     rafPending = false;
     const progress = computeProgress();
-    // Reverse playback: scroll=0 -> last frame, scroll=1 -> first frame.
-    const frameIdx = Math.max(
-      0,
-      Math.min(FRAME_COUNT - 1, Math.round((1 - progress) * (FRAME_COUNT - 1))),
-    );
-    if (frameIdx !== currentFrame) {
-      drawFrame(frameIdx);
-      currentFrame = frameIdx;
+    // Reverse playback from START_FRAME to END_FRAME. We STOP at END_FRAME
+    // (the "hotspot-ready" composition) rather than going all the way back
+    // to frame 1 -- this way user lands on the interactive view and can
+    // stay there while they click the services.
+    const startIdx = START_FRAME - 1; // 0-indexed
+    const endIdx = END_FRAME - 1;
+    const frameIdx = Math.round(startIdx + (endIdx - startIdx) * progress);
+    const safeIdx = Math.max(0, Math.min(FRAME_COUNT - 1, frameIdx));
+    if (safeIdx !== currentFrame) {
+      drawFrame(safeIdx);
+      currentFrame = safeIdx;
     }
     updateHotspots(progress);
     if (progressEl) {
@@ -169,18 +201,54 @@ const HOTSPOTS = [
     requestAnimationFrame(tick);
   }
 
+  function updateLoader() {
+    if (!loaderBar || !loaderCount) return;
+    const pct = Math.min(100, Math.round((loadedCount / FRAME_COUNT) * 100));
+    loaderBar.style.transform = `scaleX(${pct / 100})`;
+    loaderCount.textContent = pct + '%';
+  }
+
+  function maybeHideLoader() {
+    if (loaderHidden || !loaderEl) return;
+    if (loadedCount >= MIN_PLAYABLE) {
+      loaderHidden = true;
+      loaderEl.classList.add('is-hiding');
+      // After the transition finishes, remove from flow
+      setTimeout(() => {
+        if (loaderEl) loaderEl.style.display = 'none';
+      }, 800);
+    }
+  }
+
   function preload() {
     images = new Array(FRAME_COUNT);
+    // Prioritize the END_FRAME region first so the hotspot view appears
+    // ASAP even if earlier frames haven't downloaded. Then fill in the
+    // rest in order.
+    const order = [];
+    const priorityStart = Math.max(0, END_FRAME - 10);
+    const priorityEnd = Math.min(FRAME_COUNT, END_FRAME + 10);
+    for (let i = priorityStart; i < priorityEnd; i++) order.push(i);
     for (let i = 0; i < FRAME_COUNT; i++) {
+      if (i < priorityStart || i >= priorityEnd) order.push(i);
+    }
+
+    for (const i of order) {
       const img = new Image();
       img.src = `${FRAME_DIR}${pad4(i + 1)}.jpg`;
       img.decoding = 'async';
       img.onload = () => {
         loadedCount++;
+        updateLoader();
         if (loadedCount === 1) {
-          // First frame loaded -- draw something instead of black.
           tick();
         }
+        maybeHideLoader();
+      };
+      img.onerror = () => {
+        loadedCount++; // count even failed so loader can finish
+        updateLoader();
+        maybeHideLoader();
       };
       images[i] = img;
     }
@@ -190,6 +258,9 @@ const HOTSPOTS = [
     section = document.querySelector('[data-atelier-hero]');
     canvas = document.querySelector('[data-atelier-canvas]');
     progressEl = document.querySelector('[data-atelier-progress]');
+    loaderEl = document.querySelector('[data-atelier-loader]');
+    loaderBar = document.querySelector('[data-atelier-loader-bar]');
+    loaderCount = document.querySelector('[data-atelier-loader-count]');
     if (!section || !canvas) return;
 
     ctx = canvas.getContext('2d');
@@ -259,11 +330,12 @@ const HOTSPOTS = [
 
 <style>
   .atelier-hero {
-    /* Tall scroll section -- sticky canvas inside scrubs as you scroll */
+    /* Scroll section height. Shorter than before (250vh) so the scrub
+       ends quicker and the user can interact with hotspots sooner. */
     position: relative;
-    height: 400vh;
+    height: 250vh;
     width: 100%;
-    background: #1a1414; /* warm dark, in case frames haven't loaded */
+    background: #BC9181; /* terracotta plaster, matches page bg */
   }
 
   .atelier-hero__sticky {
@@ -385,5 +457,72 @@ const HOTSPOTS = [
     transform-origin: left center;
     transform: scaleX(0);
     will-change: transform;
+  }
+
+  /* ---- Loader veil ---- */
+  .atelier-loader {
+    position: absolute;
+    inset: 0;
+    background: #BC9181;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    z-index: 20;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+
+  .atelier-loader.is-hiding {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .atelier-loader__ring {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(248, 240, 232, 0.8);
+    border-top-color: transparent;
+    animation: atelier-spin 1.4s linear infinite;
+  }
+
+  .atelier-loader__label {
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 0.8rem + 0.6vw, 1.25rem);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    color: rgba(248, 240, 232, 0.95);
+    font-style: italic;
+  }
+
+  .atelier-loader__progress {
+    width: min(280px, 40vw);
+    height: 1px;
+    background: rgba(248, 240, 232, 0.2);
+    overflow: hidden;
+  }
+
+  .atelier-loader__bar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: rgba(248, 240, 232, 0.9);
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 0.2s ease-out;
+  }
+
+  .atelier-loader__count {
+    font-family: var(--font-body);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(248, 240, 232, 0.7);
+  }
+
+  @keyframes atelier-spin {
+    to { transform: rotate(360deg); }
   }
 </style>
