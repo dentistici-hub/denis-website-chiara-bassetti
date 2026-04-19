@@ -46,42 +46,49 @@ const HOTSPOTS = [
 
 <section class:list={['atelier-hero', className]} data-atelier-hero>
   <div class="atelier-hero__sticky">
-    <canvas class="atelier-hero__canvas" data-atelier-canvas></canvas>
+    <!-- Canvas-sized frame wrapper -- everything inside scales with it so
+         hotspots + loader + progress all anchor to video bounds, not
+         viewport bounds. On wide screens the frame shrinks to ~65vh,
+         leaving terracotta margins on both sides (reads as framed artwork
+         on a wall). On mobile it fills. -->
+    <div class="atelier-hero__frame" data-atelier-frame>
+      <canvas class="atelier-hero__canvas" data-atelier-canvas></canvas>
 
-    <!-- Loading veil -- covers the canvas until a usable chunk of frames
-         have downloaded. 30MB is a lot; without this overlay the page
-         looks frozen. -->
-    <div class="atelier-loader" data-atelier-loader>
-      <div class="atelier-loader__ring"></div>
-      <div class="atelier-loader__label">Benvenuti nell'atelier</div>
-      <div class="atelier-loader__progress">
-        <span class="atelier-loader__bar" data-atelier-loader-bar></span>
+      <!-- Loading veil -- covers the canvas until a usable chunk of frames
+           have downloaded. -->
+      <div class="atelier-loader" data-atelier-loader>
+        <div class="atelier-loader__ring"></div>
+        <div class="atelier-loader__label">Benvenuti nell'atelier</div>
+        <div class="atelier-loader__progress">
+          <span class="atelier-loader__bar" data-atelier-loader-bar></span>
+        </div>
+        <div class="atelier-loader__count" data-atelier-loader-count>0%</div>
       </div>
-      <div class="atelier-loader__count" data-atelier-loader-count>0%</div>
-    </div>
 
-    <!-- Hotspot overlay layer. Each hotspot is a button positioned in
-         percentage units; JS toggles visibility based on scroll range. -->
-    <div class="atelier-hero__hotspots" data-atelier-hotspots>
-      {HOTSPOTS.map((h) => (
-        <button
-          class="hotspot"
-          type="button"
-          data-hotspot-id={h.id}
-          data-hotspot-from={h.from}
-          data-hotspot-to={h.to}
-          style={`--hx: ${h.x}%; --hy: ${h.y}%`}
-          aria-label={h.service}
-        >
-          <span class="hotspot__ring"></span>
-          <span class="hotspot__dot"></span>
-          <span class="hotspot__label">{h.service}</span>
-        </button>
-      ))}
-    </div>
+      <!-- Hotspot overlay layer. Percentage positions anchor to the frame
+           (canvas bounds), not the viewport, so they follow the video on
+           every screen size. -->
+      <div class="atelier-hero__hotspots" data-atelier-hotspots>
+        {HOTSPOTS.map((h) => (
+          <button
+            class="hotspot"
+            type="button"
+            data-hotspot-id={h.id}
+            data-hotspot-from={h.from}
+            data-hotspot-to={h.to}
+            style={`--hx: ${h.x}%; --hy: ${h.y}%`}
+            aria-label={h.service}
+          >
+            <span class="hotspot__ring"></span>
+            <span class="hotspot__dot"></span>
+            <span class="hotspot__label">{h.service}</span>
+          </button>
+        ))}
+      </div>
 
-    <!-- Progress indicator -- subtle line at bottom. -->
-    <div class="atelier-hero__progress" data-atelier-progress></div>
+      <!-- Progress indicator -- subtle line at bottom of the frame. -->
+      <div class="atelier-hero__progress" data-atelier-progress></div>
+    </div>
   </div>
 </section>
 
@@ -121,11 +128,31 @@ const HOTSPOTS = [
     canvas.height = Math.floor(h * dpr);
   }
 
+  function findNearestLoaded(idx) {
+    // Return the closest loaded frame to idx. This lets us draw SOMETHING
+    // immediately even before the exact frame has finished downloading.
+    const img = images[idx];
+    if (img && img.complete && img.naturalWidth > 0) return idx;
+    for (let r = 1; r < FRAME_COUNT; r++) {
+      const a = idx - r;
+      const b = idx + r;
+      if (a >= 0) {
+        const ia = images[a];
+        if (ia && ia.complete && ia.naturalWidth > 0) return a;
+      }
+      if (b < FRAME_COUNT) {
+        const ib = images[b];
+        if (ib && ib.complete && ib.naturalWidth > 0) return b;
+      }
+    }
+    return -1;
+  }
+
   function drawFrame(idx) {
     if (!ctx || !canvas) return;
-    const img = images[idx];
-    if (!img || !img.complete || img.naturalWidth === 0) return;
-    // object-fit: cover manually
+    const actualIdx = findNearestLoaded(idx);
+    if (actualIdx < 0) return;
+    const img = images[actualIdx];
     const cw = canvas.width;
     const ch = canvas.height;
     const iw = img.naturalWidth;
@@ -134,7 +161,6 @@ const HOTSPOTS = [
     const imgRatio = iw / ih;
     let dw, dh, dx, dy;
     if (imgRatio > canvasRatio) {
-      // image wider than canvas -- fit height, crop sides
       dh = ch;
       dw = ch * imgRatio;
       dx = (cw - dw) / 2;
@@ -222,15 +248,30 @@ const HOTSPOTS = [
 
   function preload() {
     images = new Array(FRAME_COUNT);
-    // Prioritize the END_FRAME region first so the hotspot view appears
-    // ASAP even if earlier frames haven't downloaded. Then fill in the
-    // rest in order.
+    // Priority order:
+    //   1. The START frame (what scroll=0 shows) -- for instant first paint
+    //   2. The END frame region (hotspot composition)
+    //   3. Fill in the gap between them
+    //   4. Everything else
     const order = [];
-    const priorityStart = Math.max(0, END_FRAME - 10);
-    const priorityEnd = Math.min(FRAME_COUNT, END_FRAME + 10);
-    for (let i = priorityStart; i < priorityEnd; i++) order.push(i);
+    const startIdx = START_FRAME - 1;
+    const endIdx = END_FRAME - 1;
+    const priorityStart = Math.max(0, endIdx - 5);
+    const priorityEnd = Math.min(FRAME_COUNT, endIdx + 5);
+
+    order.push(startIdx); // 1. starting frame first
+    for (let i = priorityStart; i < priorityEnd; i++) order.push(i); // 2. end zone
+    // 3. Fill interior between start and end (reverse-iterating from
+    //    startIdx down toward endIdx skips work since we already queued
+    //    start/end regions).
+    const lo = Math.min(startIdx, endIdx);
+    const hi = Math.max(startIdx, endIdx);
+    for (let i = hi - 1; i > lo; i--) {
+      if (!order.includes(i)) order.push(i);
+    }
+    // 4. Everything else
     for (let i = 0; i < FRAME_COUNT; i++) {
-      if (i < priorityStart || i >= priorityEnd) order.push(i);
+      if (!order.includes(i)) order.push(i);
     }
 
     for (const i of order) {
@@ -240,13 +281,14 @@ const HOTSPOTS = [
       img.onload = () => {
         loadedCount++;
         updateLoader();
-        if (loadedCount === 1) {
-          tick();
-        }
+        // Re-tick on every load so the canvas keeps catching up as frames
+        // stream in -- user sees the image appear as soon as any relevant
+        // frame is ready, not only after the exact requested frame.
+        tick();
         maybeHideLoader();
       };
       img.onerror = () => {
-        loadedCount++; // count even failed so loader can finish
+        loadedCount++;
         updateLoader();
         maybeHideLoader();
       };
@@ -345,9 +387,40 @@ const HOTSPOTS = [
     height: 100vh;
     height: 100svh;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #BC9181;
+  }
+
+  /* Adaptive frame -- smaller on wider screens so the video reads as a
+     framed piece of art mounted on the plaster wall. The further "away"
+     it sits on desktop, the denser each rendered pixel looks. */
+  .atelier-hero__frame {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    height: min(100%, 92vh);
+    max-width: 100%;
+  }
+
+  /* Narrow the frame progressively on larger viewports.
+     640px  -> canvas fills vertically
+     1100px -> 82vh
+     1500px -> 70vh
+     1800px -> 62vh */
+  @media (min-width: 1100px) {
+    .atelier-hero__frame { height: 82vh; }
+  }
+  @media (min-width: 1500px) {
+    .atelier-hero__frame { height: 70vh; }
+  }
+  @media (min-width: 1800px) {
+    .atelier-hero__frame { height: 62vh; }
   }
 
   .atelier-hero__canvas {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     display: block;

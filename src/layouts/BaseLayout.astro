@@ -84,6 +84,29 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         document.documentElement.classList.add('reality-entering');
       }
     </script>
+
+    <!-- Atelier frame prefetch. Runs synchronously as HTML parses, BEFORE
+         any JS framework or event handler. Injects 193 <link rel="prefetch">
+         tags for the sartoria atelier JPEG sequence. Browsers start
+         downloading them with low priority immediately, so by the time the
+         user navigates to sartoria the 45MB is already in the HTTP cache.
+         Sentinel in sessionStorage prevents re-queueing on every SPA nav. -->
+    <script is:inline define:vars={{ BASE: import.meta.env.BASE_URL }}>
+      try {
+        if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atelier-prefetched') !== '1') {
+          sessionStorage.setItem('atelier-prefetched', '1');
+          var frag = document.createDocumentFragment();
+          for (var i = 1; i <= 193; i++) {
+            var link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.as = 'image';
+            link.href = BASE + 'scenes/atelier-frames/' + String(i).padStart(4, '0') + '.jpg';
+            frag.appendChild(link);
+          }
+          document.head.appendChild(frag);
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <a href="#main-content" class="skip-link">Vai al contenuto</a>
@@ -136,15 +159,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         // initReality handles the reality-change dispatch, toggle binding,
         // and (on non-first page-loads) the entrance choreography.
         await initReality();
-
-        // Prefetch the sartoria atelier frame sequence in the background
-        // while the user is on immagine (or any non-sartoria page). Only
-        // fires once per session. Idle-scheduled so first paint isn't
-        // impacted.
-        if (!window.location.pathname.replace(/\/$/, '').endsWith('/sartoria')) {
-          const { prefetchAtelierFrames } = await import('../scripts/atelier-prefetch');
-          prefetchAtelierFrames(import.meta.env.BASE_URL);
-        }
+        // Atelier frames are prefetched via inline <link rel="prefetch"> tags
+        // in <head> -- no JS fallback needed here.
       });
 
       // Hide broken <img> tags instead of rendering the browser's default
