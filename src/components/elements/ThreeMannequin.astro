@@ -1,0 +1,517 @@
+---
+/**
+ * Three.js-rendered 3D mannequin.
+ *
+ * Self-hosted GLB geometry at public/scenes/mannequin.glb. Materials are
+ * rebuilt in code (Spline's GLB export drops textures / matcaps). Skeleton
+ * + bones come through in the GLTF, so Mixamo animation clips can be
+ * layered on top via AnimationMixer when we wire them in.
+ *
+ * Lazy init after idle so first paint isn't blocked. Disposes WebGL
+ * resources on SPA nav away from the sartoria page.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+
+// Rigged figure with 7 baked animations (idle, walk, run, agree, headShake,
+// sad_pose, sneak_pose). Three.js / Khronos sample model under CC license.
+const MANNEQUIN_URL = `${import.meta.env.BASE_URL}scenes/figure.glb`;
+---
+
+<div class:list={['three-mannequin', className]} data-three-mannequin data-model-url={MANNEQUIN_URL}>
+  <canvas class="three-mannequin__canvas" data-three-canvas></canvas>
+</div>
+
+<script>
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+  interface SceneState {
+    renderer: THREE.WebGLRenderer;
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    mixer: THREE.AnimationMixer | null;
+    clock: THREE.Clock;
+    model: THREE.Object3D | null;
+    rafId: number;
+    resizeObserver: ResizeObserver | null;
+    disposed: boolean;
+    weaveMat: THREE.ShaderMaterial | null;
+    cursor: { x: number; y: number };
+    cursorTarget: { x: number; y: number };
+    pointerListener: ((e: PointerEvent) => void) | null;
+    // Awareness system -- she looks at what you're doing.
+    headBone: THREE.Bone | null;
+    spineBone: THREE.Bone | null;
+    // Current attention target in world space; lerped each frame toward
+    // whatever the awareness system decides should be her focus.
+    attentionTarget: THREE.Vector3;
+    attentionCurrent: THREE.Vector3;
+    // Raycaster re-used per frame for cursor->world projection.
+    raycaster: THREE.Raycaster;
+    // Head bone's REST local quaternion, captured before any animation so
+    // we can blend back toward the animation's pose when cursor is idle.
+    headRestQuat: THREE.Quaternion;
+  }
+
+  // Module state survives the script-tag lifetime; cleared on page swap.
+  let state: SceneState | null = null;
+  let initializing = false;
+
+  function buildMaterial(): THREE.MeshStandardMaterial {
+    // Dark gunmetal with soft sheen. The cyber-body geometry detail carries
+    // itself; we don't fight it with loud PBR values.
+    return new THREE.MeshStandardMaterial({
+      color: 0x2a2a32,
+      metalness: 0.6,
+      roughness: 0.38,
+      envMapIntensity: 1.0,
+    });
+  }
+
+  // ------------------------------------------------------------------------
+  // Woven "trama" background shader.
+  // Full-viewport plane behind the mannequin. Fragment shader generates a
+  // warp/weft weave pattern -- alternating cells flip thread direction so
+  // it reads as actual fabric, not stripes or dots. Curl-ish noise advected
+  // by time gives the fabric a slow "breathing" drift. Cursor position
+  // creates a local ripple + warm light pool.
+  // Colors: deep charcoal base with warm taupe threads -- linen/canvas
+  // feel, explicitly NOT silk.
+  // ------------------------------------------------------------------------
+
+  const WEAVE_VERT = /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position.xy, 0.999, 1.0); // pin to far plane
+    }
+  `;
+
+  const WEAVE_FRAG = /* glsl */ `
+    uniform float uTime;
+    uniform vec2 uCursor;     // 0..1 normalized
+    uniform vec2 uResolution; // pixels
+    varying vec2 vUv;
+
+    // Cheap value noise
+    float hash21(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+    float noise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      return mix(
+        mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x),
+        mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), f.x),
+        f.y
+      );
+    }
+
+    void main() {
+      // Aspect-correct coordinates so the cursor ripple is a circle, not
+      // an ellipse stretched with the hero's wide box.
+      float aspect = uResolution.x / uResolution.y;
+      vec2 uv = vUv;
+      vec2 auv = vec2(uv.x * aspect, uv.y);
+      vec2 acur = vec2(uCursor.x * aspect, uCursor.y);
+
+      float dist = distance(auv, acur);
+
+      // Cursor displacement -- UVs get pushed outward from cursor, magnitude
+      // falls off exponentially. Fabric "bulges" where cursor sits.
+      vec2 pushDir = normalize(auv - acur + vec2(0.0001));
+      float pushMag = exp(-dist * 2.2) * 0.028;
+      vec2 dUv = uv + pushDir * pushMag / vec2(aspect, 1.0);
+
+      // Slow drift -- two octaves of noise offset in opposite time directions
+      // so the weave "breathes" without obvious looping.
+      float t = uTime * 0.04;
+      vec2 drift = vec2(
+        noise(dUv * 2.2 + vec2(t, 0.0)),
+        noise(dUv * 2.6 - vec2(0.0, t))
+      ) - 0.5;
+      dUv += drift * 0.012;
+
+      // Weave grid -- alternating cells switch between horizontal and
+      // vertical thread direction, which is what gives REAL woven fabric
+      // its characteristic over/under appearance.
+      float density = 220.0;
+      vec2 cell = dUv * vec2(density * 0.85, density);
+      vec2 cellIdx = floor(cell);
+      vec2 cellLoc = fract(cell);
+
+      // Parity determines which thread direction shows in this cell.
+      float parity = mod(cellIdx.x + cellIdx.y, 2.0);
+
+      // Thread body -- thicker at center, tapers to edge of cell.
+      float threadH = 1.0 - smoothstep(0.18, 0.48, abs(cellLoc.y - 0.5));
+      float threadV = 1.0 - smoothstep(0.18, 0.48, abs(cellLoc.x - 0.5));
+      float thread = mix(threadH, threadV, parity);
+
+      // Sparkle of twist variation along the thread length so it doesn't
+      // look computer-perfect.
+      float twist = noise(cellIdx * 0.3 + t * 0.5);
+      thread *= 0.75 + 0.25 * twist;
+
+      // Soft vignette pulls thread visibility down toward edges so the
+      // hero corners go quiet.
+      float vig = 1.0 - smoothstep(0.25, 0.95, distance(uv, vec2(0.5)));
+      thread *= 0.35 + 0.65 * vig;
+
+      // Palette: deep near-black base, warm linen-thread taupe.
+      vec3 base = vec3(0.025, 0.022, 0.028);
+      vec3 threadCol = vec3(0.32, 0.26, 0.20);
+      vec3 color = mix(base, threadCol, thread * 0.55);
+
+      // Warm pool around the cursor -- very subtle, reads as candle-light
+      // falling on fabric rather than UI glow.
+      float glow = exp(-dist * 2.0) * 0.18;
+      color += vec3(0.38, 0.27, 0.17) * glow;
+
+      // Film grain to kill banding on dark regions.
+      float g = hash21(uv + uTime * 0.001) - 0.5;
+      color += vec3(g) * 0.012;
+
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+
+  function createWeaveBackground(
+    scene: THREE.Scene,
+    w: number,
+    h: number,
+  ): THREE.ShaderMaterial {
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: WEAVE_VERT,
+      fragmentShader: WEAVE_FRAG,
+      uniforms: {
+        uTime: { value: 0 },
+        uCursor: { value: new THREE.Vector2(0.5, 0.5) },
+        uResolution: { value: new THREE.Vector2(w, h) },
+      },
+      depthTest: false,
+      depthWrite: false,
+    });
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
+    plane.frustumCulled = false;
+    plane.renderOrder = -1; // draw before anything else
+    scene.add(plane);
+    return mat;
+  }
+
+  function setupLights(scene: THREE.Scene): void {
+    // Soft ambient so the darks don't crush.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+
+    // Key: warm front-top from camera-right side.
+    const key = new THREE.DirectionalLight(0xffe6c7, 1.8);
+    key.position.set(2.5, 4, 2.5);
+    scene.add(key);
+
+    // Rim: cool teal from behind-left to pop the silhouette.
+    const rim = new THREE.DirectionalLight(0x69e3ff, 0.9);
+    rim.position.set(-3, 2.5, -3);
+    scene.add(rim);
+
+    // Fill: low cool tone from camera side.
+    const fill = new THREE.DirectionalLight(0xa7b8ff, 0.35);
+    fill.position.set(-1.5, 1, 3);
+    scene.add(fill);
+  }
+
+  function disposeScene(): void {
+    if (!state) return;
+    state.disposed = true;
+    cancelAnimationFrame(state.rafId);
+    state.resizeObserver?.disconnect();
+    if (state.pointerListener) {
+      window.removeEventListener('pointermove', state.pointerListener);
+    }
+    state.scene.traverse((obj) => {
+      if ((obj as any).geometry) (obj as any).geometry.dispose();
+      const mat = (obj as any).material;
+      if (Array.isArray(mat)) mat.forEach((m: any) => m.dispose?.());
+      else mat?.dispose?.();
+    });
+    state.renderer.dispose();
+    state.renderer.forceContextLoss();
+    state = null;
+  }
+
+  async function initScene(): Promise<void> {
+    if (state || initializing) return;
+    const wrapper = document.querySelector<HTMLElement>('[data-three-mannequin]');
+    const canvas = document.querySelector<HTMLCanvasElement>('[data-three-canvas]');
+    if (!wrapper || !canvas) return;
+
+    const url = wrapper.dataset.modelUrl;
+    if (!url) return;
+
+    initializing = true;
+
+    const w = wrapper.clientWidth || window.innerWidth;
+    const h = wrapper.clientHeight || window.innerHeight;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(w, h, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(28, w / h, 0.1, 100);
+    // Framing: full-body in view with generous headroom + slight upward
+    // viewing angle from below-center. Reads as gallery/pedestal display.
+    camera.position.set(0, 0.95, 5.2);
+    camera.lookAt(0, 0.95, 0);
+
+    setupLights(scene);
+
+    const clock = new THREE.Clock();
+
+    const initial: SceneState = {
+      renderer,
+      scene,
+      camera,
+      mixer: null,
+      clock,
+      model: null,
+      rafId: 0,
+      resizeObserver: null,
+      disposed: false,
+      weaveMat: null,
+      cursor: { x: 0.5, y: 0.5 },
+      cursorTarget: { x: 0.5, y: 0.5 },
+      pointerListener: null,
+      headBone: null,
+      spineBone: null,
+      attentionTarget: new THREE.Vector3(0, 1.5, 3),
+      attentionCurrent: new THREE.Vector3(0, 1.5, 3),
+      raycaster: new THREE.Raycaster(),
+      headRestQuat: new THREE.Quaternion(),
+    };
+    state = initial;
+
+    // Cursor tracking. We track cursor over the whole window (not just the
+    // mannequin's box) because she watches what the user is doing across
+    // the entire page, not just within her 40vw.
+    const onPointer = (e: PointerEvent) => {
+      if (!state) return;
+      state.cursorTarget.x = (e.clientX / window.innerWidth) * 2 - 1; // NDC -1..1
+      state.cursorTarget.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    };
+    window.addEventListener('pointermove', onPointer, { passive: true });
+    initial.pointerListener = onPointer;
+
+    // Load model.
+    const loader = new GLTFLoader();
+    try {
+      const gltf = await loader.loadAsync(url);
+      if (initial.disposed) return;
+      const model = gltf.scene;
+
+      // Rebuild materials -- the sample GLB ships with a gray default. Override
+      // to a matte charcoal editorial tone that matches Chiara's sartoria palette.
+      const mat = buildMaterial();
+      model.traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh || (obj as THREE.SkinnedMesh).isSkinnedMesh) {
+          (obj as THREE.Mesh).material = mat;
+          (obj as THREE.Mesh).castShadow = true;
+          (obj as THREE.Mesh).receiveShadow = false;
+          (obj as THREE.Mesh).frustumCulled = false; // skinned meshes can false-cull
+        }
+      });
+
+      // Auto-frame: scale model so height ~= 1.75 units, ground feet at y=0.
+      const bbox = new THREE.Box3().setFromObject(model);
+      const size = bbox.getSize(new THREE.Vector3());
+      const targetHeight = 1.75;
+      const scale = targetHeight / Math.max(size.y, 0.001);
+      model.scale.setScalar(scale);
+      const bbox2 = new THREE.Box3().setFromObject(model);
+      const center2 = bbox2.getCenter(new THREE.Vector3());
+      model.position.x -= center2.x;
+      model.position.y -= bbox2.min.y;
+      model.position.z -= center2.z;
+
+      scene.add(model);
+      initial.model = model;
+
+      // Find the Head bone so we can drive its rotation for the awareness
+      // system. Also grab Spine2 for subtle torso follow. X-Bot's rig uses
+      // simple bone names ("Head", "Spine2") without the mixamorig_ prefix,
+      // so match loosely on name.
+      model.traverse((o) => {
+        if (!(o as any).isBone) return;
+        const name = (o as any).name as string;
+        if (!initial.headBone && /head/i.test(name) && !/end/i.test(name)) {
+          initial.headBone = o as THREE.Bone;
+          initial.headRestQuat.copy((o as THREE.Bone).quaternion);
+        }
+        if (!initial.spineBone && /spine2|upper|chest/i.test(name)) {
+          initial.spineBone = o as THREE.Bone;
+        }
+      });
+      console.info('[ThreeMannequin] head bone:', initial.headBone?.name, 'spine:', initial.spineBone?.name);
+      // Debug hook (dev only) -- window.__mannequin.head exposes the bone.
+      (window as any).__mannequin = initial;
+
+      // Wire the idle animation: AnimationMixer plays clips against the rig.
+      const idle = gltf.animations.find((c) => /idle/i.test(c.name)) || gltf.animations[0];
+      if (idle) {
+        const mixer = new THREE.AnimationMixer(model);
+        const action = mixer.clipAction(idle);
+        action.play();
+        initial.mixer = mixer;
+        console.info('[ThreeMannequin] playing', idle.name, '-- clips available:', gltf.animations.map((c) => c.name).join(', '));
+      } else {
+        console.warn('[ThreeMannequin] no animations in GLB');
+      }
+    } catch (err) {
+      console.warn('[ThreeMannequin] failed to load model', err);
+      initializing = false;
+      return;
+    }
+
+    // Resize handling -- respond to both window resize AND wrapper size
+    // changes (the hero section can grow/shrink with viewport).
+    const onResize = () => {
+      if (!state || state.disposed) return;
+      const W = wrapper.clientWidth || window.innerWidth;
+      const H = wrapper.clientHeight || window.innerHeight;
+      state.renderer.setSize(W, H, false);
+      state.camera.aspect = W / H;
+      state.camera.updateProjectionMatrix();
+      if (state.weaveMat) {
+        (state.weaveMat.uniforms.uResolution.value as THREE.Vector2).set(W, H);
+      }
+    };
+    window.addEventListener('resize', onResize);
+    const ro = new ResizeObserver(onResize);
+    ro.observe(wrapper);
+    initial.resizeObserver = ro;
+
+    // Reusable temp objects for the per-frame awareness update.
+    const _cursorVec = new THREE.Vector2();
+    // Plane close to the mannequin (z ~= 1.0) so angular deviations are big
+    // enough to read as head tracking, not a tiny twitch.
+    const _lookPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 1.2);
+    const _mixerQuat = new THREE.Quaternion();
+    const _aimQuat = new THREE.Quaternion();
+    const MAX_HEAD_ANGLE = Math.PI * 0.33; // ~60° total, anatomically plausible
+
+    // Render loop.
+    const tick = () => {
+      if (!state || state.disposed) return;
+      const dt = state.clock.getDelta();
+      if (state.mixer) state.mixer.update(dt);
+
+      // Smooth cursor lerp -- target is NDC (-1..1), easing ~0.08 gives
+      // fabric-like follow.
+      state.cursor.x += (state.cursorTarget.x - state.cursor.x) * 0.08;
+      state.cursor.y += (state.cursorTarget.y - state.cursor.y) * 0.08;
+
+      // Project smoothed cursor into world space onto a plane in front of
+      // the mannequin. Gives us an attention target she can "look at".
+      _cursorVec.set(state.cursor.x, state.cursor.y);
+      state.raycaster.setFromCamera(_cursorVec, state.camera);
+      state.raycaster.ray.intersectPlane(_lookPlane, state.attentionTarget);
+      // Scale the target's XY so cursor motion near screen edge translates
+      // to more dramatic head angles. Multiplier is picked by feel.
+      state.attentionTarget.x *= 1.8;
+      state.attentionTarget.y *= 1.2;
+
+      // Lerp current attention toward target. This is what actually drives
+      // head rotation; the lerp adds lag so head motion reads as considered,
+      // not reflexive.
+      state.attentionCurrent.lerp(state.attentionTarget, 0.06);
+
+      // Head follow -- rotate head toward the world-space attention target.
+      // The mixer has already written the idle clip's rotation; we overwrite
+      // on top of that (X-Bot idle barely moves the head, so losing that is
+      // acceptable in exchange for awareness).
+      if (state.headBone) {
+        // Object3D.lookAt handles parent-world transform internally -- it
+        // sets the bone's quaternion so bone's local -Z axis points at the
+        // world-space target. Mixamo head's face direction is +Z, so we
+        // compensate by flipping 180° around Y after the lookAt.
+        _mixerQuat.copy(state.headBone.quaternion); // save mixer's rotation
+
+        state.headBone.lookAt(state.attentionCurrent);
+        state.headBone.rotateY(Math.PI); // flip so face (+Z) points at target
+        _aimQuat.copy(state.headBone.quaternion);
+
+        // Clamp: if the aim rotation deviates too far from the mixer's
+        // rotation, pull it back. Keeps the head from spinning past
+        // anatomically reasonable angles.
+        const delta = _aimQuat.angleTo(_mixerQuat);
+        if (delta > MAX_HEAD_ANGLE) {
+          _aimQuat.copy(_mixerQuat).slerp(
+            state.headBone.quaternion, // which is currently = aim
+            MAX_HEAD_ANGLE / delta,
+          );
+        }
+
+        // Restore mixer rotation, then slerp toward aim with soft damping.
+        state.headBone.quaternion.copy(_mixerQuat).slerp(_aimQuat, 0.15);
+      }
+
+      state.renderer.render(state.scene, state.camera);
+      state.rafId = requestAnimationFrame(tick);
+    };
+    state.rafId = requestAnimationFrame(tick);
+
+    initializing = false;
+  }
+
+  function scheduleInit(): void {
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(initScene, { timeout: 2500 });
+    } else {
+      setTimeout(initScene, 600);
+    }
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    if (document.querySelector('[data-three-mannequin]')) {
+      scheduleInit();
+    }
+  });
+
+  // astro:before-swap fires right before the DOM is replaced -- clean up
+  // the renderer so we don't leak WebGL contexts across pages.
+  document.addEventListener('astro:before-swap', () => {
+    disposeScene();
+    initializing = false;
+  });
+
+  // Initial-load fallback if astro:page-load already fired.
+  if (document.readyState === 'complete' && document.querySelector('[data-three-mannequin]')) {
+    scheduleInit();
+  }
+</script>
+
+<style>
+  .three-mannequin {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .three-mannequin__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

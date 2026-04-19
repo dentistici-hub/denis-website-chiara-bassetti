@@ -1,0 +1,143 @@
+---
+/**
+ * Video-based mannequin. A Higgsfield-generated (or similar) looping clip
+ * plays as the hero visual. No Three.js, no cloth sim, no rigging -- the
+ * dress flows because the source video captured that motion.
+ *
+ * Expects a file at public/scenes/mannequin.mp4 (H.264 MP4, no audio).
+ * Optional: a WebM with alpha at public/scenes/mannequin.webm for browsers
+ * that support alpha transparency.
+ *
+ * The video is autoplay + muted + loop + playsinline -- all required for
+ * iOS/Safari auto-start.
+ *
+ * Interactivity: cursor drives a subtle parallax tilt on the container,
+ * NOT on the video element itself (tilting the video causes re-encoding
+ * artifacts and performance cost). The container transform is cheap.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+
+const MP4_URL = `${import.meta.env.BASE_URL}scenes/mannequin.mp4`;
+const WEBM_URL = `${import.meta.env.BASE_URL}scenes/mannequin.webm`;
+---
+
+<div class:list={['video-mannequin', className]} data-video-mannequin>
+  <div class="video-mannequin__inner" data-video-inner>
+    <video
+      class="video-mannequin__video"
+      data-video-el
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      aria-hidden="true"
+    >
+      <!-- WebM first for alpha-channel browsers (Chrome/Firefox). -->
+      <source src={WEBM_URL} type="video/webm" />
+      <!-- H.264 MP4 fallback (universal). -->
+      <source src={MP4_URL} type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<script>
+  // Subtle cursor parallax on the mannequin container. Tracks the whole
+  // window, dampens, applies as a tilt + translate to the inner wrapper.
+  // The video element itself is untouched so playback stays smooth.
+  let targetX = 0;
+  let targetY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  let rafId = 0;
+  let bound = false;
+
+  function onPointer(e: PointerEvent) {
+    // Normalize -1..1 relative to viewport center
+    targetX = (e.clientX / window.innerWidth) * 2 - 1;
+    targetY = (e.clientY / window.innerHeight) * 2 - 1;
+  }
+
+  function tick() {
+    const inner = document.querySelector<HTMLElement>('[data-video-inner]');
+    if (!inner) {
+      rafId = requestAnimationFrame(tick);
+      return;
+    }
+    // Gentle lerp toward target. Max 3° tilt, 12px translate -- subtle.
+    currentX += (targetX - currentX) * 0.06;
+    currentY += (targetY - currentY) * 0.06;
+    const rotY = currentX * 3;
+    const rotX = -currentY * 2;
+    const tx = currentX * 12;
+    const ty = currentY * 6;
+    inner.style.transform = `translate3d(${tx}px, ${ty}px, 0) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function bind() {
+    if (bound) return;
+    bound = true;
+    window.addEventListener('pointermove', onPointer, { passive: true });
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function unbind() {
+    bound = false;
+    window.removeEventListener('pointermove', onPointer);
+    cancelAnimationFrame(rafId);
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    if (document.querySelector('[data-video-mannequin]')) {
+      bind();
+    } else {
+      unbind();
+    }
+  });
+
+  document.addEventListener('astro:before-swap', () => {
+    unbind();
+  });
+
+  if (document.readyState === 'complete' && document.querySelector('[data-video-mannequin]')) {
+    bind();
+  }
+</script>
+
+<style>
+  .video-mannequin {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    perspective: 1200px;
+    overflow: hidden;
+  }
+
+  .video-mannequin__inner {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    will-change: transform;
+    transform-style: preserve-3d;
+    transition: transform 0s; /* we drive via rAF, no CSS transition */
+  }
+
+  .video-mannequin__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    /* If the video bg is pure white/other solid, use mix-blend-mode to
+       knock it out against the page bg. Commented -- enable if source
+       is white-on-white and we want it on dark page. */
+    /* mix-blend-mode: luminosity; */
+  }
+</style>

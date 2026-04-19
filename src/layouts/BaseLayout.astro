@@ -9,7 +9,6 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
-import MannequinFigure from '../components/elements/MannequinFigure.astro';
 
 interface Props {
   title: string;
@@ -69,27 +68,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       }
     </style>
     <style is:inline>
-      .persistent-mannequin {
-        position: fixed;
-        left: 50%;
-        bottom: 10vh;
-        transform: translate3d(-50%, 0, 0);
-        height: clamp(320px, 62vh, 620px);
-        z-index: 9999;
-        pointer-events: none;
-        will-change: transform, opacity;
-      }
-      .persistent-mannequin .mannequin-figure {
-        height: 100%;
-      }
-      /* Default state: hidden on immagine, visible on sartoria. JS overrides
-         during the transition to animate her in/out explicitly. */
-      html.immagine .persistent-mannequin {
-        opacity: 0;
-      }
-      html.sartoria .persistent-mannequin {
-        opacity: 1;
-      }
       /* Pre-hide surrounding content during a transition so it doesn't
          flash in before the entrance choreography runs. */
       html.reality-entering main > *,
@@ -121,12 +99,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     </main>
     <Footer />
 
-    <!-- Persistent mannequin -- lives outside <main> so the ClientRouter
-         swap leaves her DOM node intact across page changes. Hidden on
-         immagine by default, revealed during the reality transition. -->
-    <div class="persistent-mannequin" transition:persist="hero-mannequin" aria-hidden={reality === 'immagine'}>
-      <MannequinFigure />
-    </div>
 
     <script>
       import { initReality } from '../scripts/reality';
@@ -164,6 +136,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         // initReality handles the reality-change dispatch, toggle binding,
         // and (on non-first page-loads) the entrance choreography.
         await initReality();
+
+        // Prefetch the sartoria atelier frame sequence in the background
+        // while the user is on immagine (or any non-sartoria page). Only
+        // fires once per session. Idle-scheduled so first paint isn't
+        // impacted.
+        if (!window.location.pathname.replace(/\/$/, '').endsWith('/sartoria')) {
+          const { prefetchAtelierFrames } = await import('../scripts/atelier-prefetch');
+          prefetchAtelierFrames(import.meta.env.BASE_URL);
+        }
       });
 
       // Hide broken <img> tags instead of rendering the browser's default

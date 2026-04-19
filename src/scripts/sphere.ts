@@ -681,7 +681,7 @@ export function transitionColors(state: SphereState, toDesaturated: boolean, gsa
   if (scene.fog && (scene.fog as THREE.Fog).color) {
     const fogColor = (scene.fog as THREE.Fog).color;
     const target = toDesaturated
-      ? { r: 0.0392, g: 0.0392, b: 0.0392 }    // sartoria #0A0A0A
+      ? { r: 0.7373, g: 0.5686, b: 0.5059 }    // sartoria #BC9181 terracotta plaster
       : { r: 0.9804, g: 0.9725, b: 0.9608 };   // immagine #FAF8F5
     gsap.to(fogColor, { ...target, duration: 1.5, ease: 'power2.inOut' });
   }

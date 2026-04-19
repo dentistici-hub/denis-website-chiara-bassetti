@@ -2,25 +2,28 @@
  * transition.ts
  *
  * Reality transition between the two pages, orchestrated around an Astro
- * ClientRouter SPA navigation. The mannequin lives in BaseLayout as a
- * `transition:persist` element, so her DOM survives the page swap -- no
- * flicker across the navigation.
+ * ClientRouter SPA navigation. No persistent element across the swap --
+ * each page owns its own hero (sphere on immagine, Spline mannequin on
+ * sartoria); the transition is entirely a content fade + background tween.
  *
  * Flow:
- *   runExit(from, to)   -- sphere burst, content fade, walk mannequin in,
- *                          tween body bg to destination color. No teardown.
- *   navigate(url)       -- Astro swaps <main>/<header>/<footer>; mannequin
- *                          element persists across the swap.
- *   runEntrance(cur)    -- fade the new content back in around her.
+ *   runExit(from, to)   -- sphere burst (if leaving immagine), content fade,
+ *                          tween body bg to destination color.
+ *   navigate(url)       -- Astro swaps the whole DOM.
+ *   runEntrance(cur)    -- fade the new content in; if entering immagine
+ *                          from sartoria, fire sphere-recompose.
  */
 
 import { gsap } from 'gsap';
 
 type Reality = 'immagine' | 'sartoria';
 
+// Sartoria bg tone now matches the atelier's terracotta-rose plaster walls
+// so the scroll-scrubbed hero flows into the content below without a visible
+// color seam. The immagine side stays cream.
 const REALITY_BG: Record<Reality, string> = {
   immagine: '#FAF8F5',
-  sartoria: '#0A0A0A',
+  sartoria: '#BC9181',
 };
 
 // ---------------------------------------------------------------------------
@@ -105,64 +108,6 @@ function lighten(hex: string, amt: number): string {
 // ---------------------------------------------------------------------------
 // Sphere burst -- fire-and-forget, safety timeout for sartoria page
 // ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Persistent mannequin -- single element in BaseLayout, animated in/out
-// around the SPA navigation. She never teardowns, so the swap is invisible.
-// ---------------------------------------------------------------------------
-
-function getMannequin(): HTMLElement | null {
-  return document.querySelector('.persistent-mannequin');
-}
-
-async function runMannequinWalkIn(): Promise<void> {
-  const mannequin = getMannequin();
-  if (!mannequin) return;
-
-  const vw = window.innerWidth;
-  const startX = -(vw * 0.75);
-
-  // xPercent: -50 gives the center anchor. x is the walk offset.
-  gsap.set(mannequin, { xPercent: -50, x: startX, opacity: 0 });
-
-  const tl = gsap.timeline();
-  tl.to(mannequin, { opacity: 1, duration: 0.35, ease: 'power1.out' }, 0);
-  tl.to(mannequin, { x: 0, duration: 1.5, ease: 'power2.out' }, 0);
-
-  await tl.then();
-
-  // At rest, hand positioning back to CSS so the inline `matrix(...)` GSAP
-  // leaves behind doesn't sub-pixel-drift against the stylesheet's
-  // `translate3d(-50%, 0, 0)` after the SPA swap.
-  mannequin.style.transform = '';
-  mannequin.style.opacity = '';
-}
-
-// Reverse direction: she's already at the center on sartoria; walk her off
-// to the right and fade. Called when the user clicks back to immagine.
-async function runMannequinWalkOut(): Promise<void> {
-  const mannequin = getMannequin();
-  if (!mannequin) return;
-
-  const vw = window.innerWidth;
-  const endX = vw * 0.8;
-
-  // She arrives here at x:0 (her resting center). Make sure xPercent is
-  // correct in case any stale inline transform is lingering.
-  gsap.set(mannequin, { xPercent: -50 });
-
-  const tl = gsap.timeline();
-  tl.to(mannequin, { x: endX, duration: 1.5, ease: 'power2.in' }, 0);
-  tl.to(mannequin, { opacity: 0, duration: 0.4, ease: 'power1.in' }, 1.1);
-
-  await tl.then();
-
-  // Snap back to center + hand positioning to CSS so she enters the SPA
-  // swap with zero inline transform drift.
-  gsap.set(mannequin, { x: 0, xPercent: -50 });
-  mannequin.style.transform = '';
-  mannequin.style.opacity = '';
-}
 
 function fireSphereBurst(maxMs = 1700): Promise<void> {
   return new Promise((resolve) => {
@@ -283,10 +228,11 @@ export async function runExit(from: Reality, to: Reality): Promise<void> {
   }
 
   if (from === 'sartoria') {
-    // Fade sartoria text/content. The mannequin is NOT in the selector --
-    // she's persistent and walks off separately in phase 2.
+    // Fade ALL sartoria content including the Spline scene. On swap, the
+    // whole page DOM is replaced -- the Spline canvas teardown happens as
+    // part of that; no special dismissal is needed here.
     phase1.to(
-      '.sart-hero__name, .sart-hero__role, .sart-hero__statement, .sart-hero__brief, .sart-hero__meta, .sart-services, .sart-cta',
+      '.sart-hero__name, .sart-hero__role, .sart-hero__statement, .sart-hero__brief, .sart-hero__meta, .sart-hero__scene, .sart-services, .sart-cta',
       {
         opacity: 0,
         y: 20,
@@ -304,24 +250,14 @@ export async function runExit(from: Reality, to: Reality): Promise<void> {
     ease: 'power2.in',
   }, 0);
 
-  // Wait for phase 1 AND the sphere burst to fully finish before the
-  // mannequin is allowed to enter. Phase 1's tweens end ~0.6s; the sphere
-  // burst ends ~1.5s. The longer wins.
+  // Wait for phase 1 AND the sphere burst to fully finish before the bg
+  // tween starts. Phase 1's tweens end ~0.6s; the sphere burst ends ~1.5s.
+  // The longer wins.
   await Promise.all([phase1.then(), burstPromise]);
 
-  // ---- Phase 2: mannequin walk ----
-  // Immagine -> sartoria: walks IN from off-screen left to center
-  // Sartoria -> immagine: walks OUT to off-screen right
-  if (from === 'immagine' && to === 'sartoria') {
-    await runMannequinWalkIn();
-  } else if (from === 'sartoria' && to === 'immagine') {
-    await runMannequinWalkOut();
-  }
-
-  // ---- Phase 3: whole-page color transition ----
+  // ---- Phase 2: whole-page color transition ----
   // Tween the document background uniformly through grey to the destination
-  // color. No spatial origin -- the screen just shifts tone, the mannequin
-  // stands still in her center anchor on top.
+  // color. This is what visually sells the shift between realities.
   await gsap.to(document.body, {
     backgroundColor: fadeColor,
     duration: 1.0,
